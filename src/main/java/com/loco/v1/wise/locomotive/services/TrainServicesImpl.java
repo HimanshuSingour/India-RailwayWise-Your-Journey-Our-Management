@@ -1,19 +1,16 @@
 package com.loco.v1.wise.locomotive.services;
 
-import com.loco.v1.wise.locomotive.dtos.TrainRequest;
 import com.loco.v1.wise.locomotive.dtos.TrainResponse;
 import com.loco.v1.wise.locomotive.entity.Trains.Train;
-import com.loco.v1.wise.locomotive.entity.Trains.TrainBogie;
-import com.loco.v1.wise.locomotive.entity.Trains.TrainPassengersInfo;
-import com.loco.v1.wise.locomotive.exceptions.TrainHavingNumericValue;
 import com.loco.v1.wise.locomotive.exceptions.TrainServiceException;
 import com.loco.v1.wise.locomotive.payloads.MyPayloads;
 import com.loco.v1.wise.locomotive.repository.TrainRepositories;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.loco.v1.wise.locomotive.constants.TrainConstants.TRAIN_ADDED_SUCCESSFULLY;
@@ -33,17 +30,24 @@ public class TrainServicesImpl implements TrainServices {
     public TrainResponse addTrain(Train train) {
 
         String trainId = UUID.randomUUID().toString();
-        log.info("Adding a new train with ID: {}", trainId);
+        Train findExistingTrain = trainRepositories.findTrainByTrainNameAndTrainNumber(train.getTrainName() , train.getTrainNumber());
 
         if (train.getTrainName().isBlank()) {
 
             log.info("Invalid Input: Train name is null.");
-            throw new TrainServiceException("Invalid Input: Train name is null.");
+            throw new TrainServiceException("Train name should not be null.");
 
         } else if (train.getTrainName().matches(".*\\d.*")) {
 
             log.info("Invalid Input: Train name contains numbers.");
-            throw new TrainHavingNumericValue("Invalid Input: Train name contains numbers.");
+            throw new TrainServiceException("Invalid Input: Train name contains numbers.");
+
+        } else if (train.getTrainName().equals(findExistingTrain.getTrainNumber()) &&
+                Objects.equals(train.getTrainInit(), findExistingTrain.getTrainInit()) &&
+                train.getTrainName().equals(findExistingTrain.getTrainName())) {
+
+            throw new TrainServiceException("Train Is Already Exist..");
+
         }
 
         log.info("Creating a new Train object");
@@ -74,8 +78,9 @@ public class TrainServicesImpl implements TrainServices {
         log.info("Saving the new train to the repository");
         trainRepositories.save(newTrain);
         log.info("Train saved successfully");
+
+
         return trainResponse;
     }
-
 }
 

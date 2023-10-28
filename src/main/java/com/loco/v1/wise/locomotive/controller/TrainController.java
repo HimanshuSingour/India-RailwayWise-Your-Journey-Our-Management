@@ -19,12 +19,9 @@ public class TrainController {
 
     @PostMapping("/add")
     ResponseEntity<TrainResponse> addTrain(@RequestBody Train train) {
-        try {
-            TrainResponse trainResponse = trainServices.addTrain(train);
-            return new ResponseEntity<>(trainResponse, HttpStatus.ACCEPTED);
 
-        } catch (Exception e) {
-            return new ResponseEntity<TrainResponse>(HttpStatus.ACCEPTED);
-        }
+        TrainResponse trainResponse = trainServices.addTrain(train);
+        return new ResponseEntity<>(trainResponse, HttpStatus.ACCEPTED);
+
     }
 }
