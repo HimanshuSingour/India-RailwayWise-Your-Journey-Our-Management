@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 import static com.loco.v1.wise.locomotive.constants.TrainConstants.TRAIN_ADDED_SUCCESSFULLY;
@@ -31,13 +30,7 @@ public class TrainServicesImpl implements TrainServices {
     public TrainResponse addTrain(Train train) {
 
         String trainId = UUID.randomUUID().toString();
-        Optional<Train> findExistingTrain = trainRepositories.findById(train.getTrainId());
-
-        Train takeTrain;
-
-        if (findExistingTrain.isPresent()) {
-            takeTrain = findExistingTrain.get();
-        }
+        Train findExistingTrain = trainRepositories.findById(train.getTrainId()).orElseThrow();
 
         if (train.getTrainName().isBlank()) {
 
@@ -49,7 +42,9 @@ public class TrainServicesImpl implements TrainServices {
             log.info("Invalid Input: Train name contains numbers.");
             throw new TrainServiceException("Invalid Input: Train name contains numbers.");
 
-            // TODO; Need to handle Exist Train
+        }
+
+        //TODO: Need to handle existing train !
 
         log.info("Creating a new Train object");
         Train newTrain = Train.builder()
