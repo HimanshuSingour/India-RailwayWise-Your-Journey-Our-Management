@@ -1,15 +1,23 @@
 package com.loco.v1.wise.locomotive.entity.Trains;
 
-import jakarta.persistence.Table;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Table(name = "TRN_BOGIE_INFO")
 public class TrainBogie {
 
+    @Id
     private int bogieNumber;
+    private String bogieName;
     private String bogieType;
     private double bogieWeight;
     private int maxPassengerCapacity;
@@ -21,6 +29,8 @@ public class TrainBogie {
     private boolean isElectric;
     private int numberOfDoors;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "pk_trainId")
+    private Train trainBogie;
 
-    private List<TrainCoach> trainCoach;
 }

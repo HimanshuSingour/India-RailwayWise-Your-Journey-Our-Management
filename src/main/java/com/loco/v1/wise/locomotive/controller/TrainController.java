@@ -1,15 +1,30 @@
 package com.loco.v1.wise.locomotive.controller;
 
+import com.loco.v1.wise.locomotive.dtos.TrainResponse;
+import com.loco.v1.wise.locomotive.entity.Trains.Train;
 import com.loco.v1.wise.locomotive.services.TrainServices;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-@RequestMapping
+
 @RestController
+@RequestMapping("/train/v7/server")
 public class TrainController {
 
     @Autowired
     private TrainServices trainServices;
+
+    @PostMapping("/add")
+    ResponseEntity<TrainResponse> addTrain(@RequestBody Train train) {
+        try {
+            TrainResponse trainResponse = trainServices.addTrain(train);
+            return new ResponseEntity<>(trainResponse, HttpStatus.ACCEPTED);
+
+        } catch (Exception e) {
+            return new ResponseEntity<TrainResponse>(HttpStatus.ACCEPTED);
+        }
+    }
 }

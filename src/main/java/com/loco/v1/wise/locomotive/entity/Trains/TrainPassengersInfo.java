@@ -1,6 +1,6 @@
 package com.loco.v1.wise.locomotive.entity.Trains;
 
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,9 +8,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Entity
 @Table(name = "TRN_PASS_INFO")
 public class TrainPassengersInfo {
 
+    @Id
     private String passengerId;
     private String firstName;
     private String lastName;
@@ -24,4 +26,8 @@ public class TrainPassengersInfo {
     private String seatNumber;
     private String flightNumber;
     private String ticketNumber;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pk_trainId")
+    private Train trainPassengerInfo;
 }

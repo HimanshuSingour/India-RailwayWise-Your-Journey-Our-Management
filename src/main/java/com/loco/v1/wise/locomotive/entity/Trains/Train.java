@@ -1,10 +1,9 @@
 package com.loco.v1.wise.locomotive.entity.Trains;
 
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -13,44 +12,31 @@ import java.util.List;
 @NoArgsConstructor
 @ToString
 @Builder
+@Entity
 @Table(name = "TRAIN_INFO")
 public class Train {
 
-        private String trainNumber;
-        private String trainInit;
+        @Id
+        private String trainId; // UUID
+        private String trainNumber; // 6 length
+        private String trainInit; // 6 alphabetic
+        private LocalDateTime trainAddTime;
+
         private String trainName;
         private String sourceStation;
         private String destinationStation;
-        private int numberOfPassengers;
         private double ticketPrice;
-        private boolean isExpress;
-        private boolean isAC;
-        private boolean isWiFiAvailable;
-        private boolean isOnTime;
         private String departureTime;
         private String arrivalTime;
-        private int numberOfCoaches;
         private int maxSpeed;
-        private String locomotiveType;
-        private String driverName;
-        private String conductorName;
-        private int seatAvailability;
-        private int totalPassengerCapacity;
-        private boolean isCateringAvailable;
-        private boolean isWheelchairAccessible;
-        private String trainType;
         private String trainStatus;
-        private String trainEmergencyContacts;
         private int averageSpeed;
-        private String trainCapacityStats;
-        private boolean isChildFriendly;
-        private String trainEmissionsInfo;
 
-        @OneToMany
+
+        @OneToMany(mappedBy = "trainPassengerInfo" , cascade = CascadeType.ALL)
         private List<TrainPassengersInfo> passengerInfo;
 
-        @OneToMany
-        private List<TrainBogie> coach;
-
+        @OneToMany(mappedBy = "trainBogie" , cascade = CascadeType.ALL)
+        private List<TrainBogie> bogie;
 
 }
