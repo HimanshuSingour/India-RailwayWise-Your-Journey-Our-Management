@@ -26,6 +26,7 @@ public class TrainPassengersInfo {
     private String seatNumber;
     private String flightNumber;
     private String ticketNumber;
+    private String pnrNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pk_trainId")

@@ -1,7 +1,10 @@
 package com.loco.v1.wise.locomotive.services;
 
+import com.loco.v1.wise.locomotive.dtos.TrainRequest;
 import com.loco.v1.wise.locomotive.dtos.TrainResponse;
 import com.loco.v1.wise.locomotive.entity.Trains.Train;
+import com.loco.v1.wise.locomotive.entity.Trains.TrainBogie;
+import com.loco.v1.wise.locomotive.entity.Trains.TrainPassengersInfo;
 import com.loco.v1.wise.locomotive.exceptions.TrainHavingNumericValue;
 import com.loco.v1.wise.locomotive.exceptions.TrainServiceException;
 import com.loco.v1.wise.locomotive.payloads.MyPayloads;
@@ -10,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static com.loco.v1.wise.locomotive.constants.TrainConstants.TRAIN_ADDED_SUCCESSFULLY;
@@ -72,5 +76,6 @@ public class TrainServicesImpl implements TrainServices {
         log.info("Train saved successfully");
         return trainResponse;
     }
+
 }
 
