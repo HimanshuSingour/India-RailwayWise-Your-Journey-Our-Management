@@ -46,11 +46,8 @@ public class Train {
         private boolean isChildFriendly;
         private String trainEmissionsInfo;
 
-        @OneToOne
-        private TrainSaftyFeature safetyFeatures;
-
         @OneToMany
-        private List<TrainPassangersInfo> passengerInfo;
+        private List<TrainPassengersInfo> passengerInfo;
 
         @OneToMany
         private List<TrainBogie> coach;
