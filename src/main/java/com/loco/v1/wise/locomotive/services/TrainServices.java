@@ -1,6 +1,8 @@
 package com.loco.v1.wise.locomotive.services;
 
 import com.loco.v1.wise.locomotive.dtos.TrainRequest;
+import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieRequest;
+import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieResponse;
 import com.loco.v1.wise.locomotive.dtos.TrainResponse;
 import com.loco.v1.wise.locomotive.entity.Trains.Train;
 import com.loco.v1.wise.locomotive.entity.Trains.TrainBogie;
@@ -11,9 +13,10 @@ import java.util.List;
 public interface TrainServices {
 
     TrainResponse addTrain(Train train);
+    List<TrainBogieResponse> addTrainBogies(List<TrainBogieRequest> trainBogies);
 
     // TODO; Need to implements
-//    TrainResponse addTrainBogies(List<TrainBogie> trainBogies);
+
 //    TrainResponse getTrainInformationByTrainName(String trainName);
 //    TrainResponse getTrainInformationByTrainNumber(String trainNumber);
 //    TrainResponse getTrainInformationByTrainInit(String trainInit);

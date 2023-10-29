@@ -21,7 +21,6 @@ public class Train {
         private String trainNumber; // 6 length
         private String trainInit; // 6 alphabetic
         private LocalDateTime trainAddTime;
-
         private String trainName;
         private String sourceStation;
         private String destinationStation;

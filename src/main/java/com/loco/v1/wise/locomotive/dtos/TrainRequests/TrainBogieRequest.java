@@ -1,21 +1,14 @@
-package com.loco.v1.wise.locomotive.entity.Trains;
+package com.loco.v1.wise.locomotive.dtos.TrainRequests;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
-
-@Getter
-@Setter
-@Entity
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-@Table(name = "TRN_BOGIE_INFO")
-public class TrainBogie {
+public class TrainBogieRequest {
 
-    @Id
     private String bogieId;
     private String trainId; // UUID
     private String bogieNumber;
@@ -30,9 +23,4 @@ public class TrainBogie {
     private String color;
     private boolean isElectric;
     private int numberOfDoors;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "pk_trainId")
-    private Train trainBogie;
-
 }
