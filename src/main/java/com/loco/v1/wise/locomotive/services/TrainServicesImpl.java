@@ -80,11 +80,15 @@ public class TrainServicesImpl implements TrainServices {
         return trainResponse;
     }
 
-    //TODO: Need to handle existing train !
+
     @Override
     public List<TrainBogieResponse> addTrainBogies(List<TrainBogieRequest> Trainbogies) {
 
-        List<TrainBogieResponse> trainBogieResponse = null;
+        if (Trainbogies.isEmpty()) {
+            throw new TrainServiceException("No bogie is to be added");
+        }
+
+        List<TrainBogieResponse> trainBogieResponse = new ArrayList<>();
 
         log.info("Getting Request ...");
 
@@ -93,7 +97,18 @@ public class TrainServicesImpl implements TrainServices {
             if (train.isPresent()) {
                 Optional<TrainBogie> trainBogie = trainBogieRepositories.findById(bogies.getBogieId());
 
-                if (trainBogie.isEmpty()) {
+                // above will give if the bogie is already exists and bogie is not exist and added now
+                if (trainBogie.isPresent()) {
+                    TrainBogie existingBogie = trainBogie.get();
+                    TrainBogieResponse response = new TrainBogieResponse();
+                    response.setTranId(existingBogie.getTrainId());
+                    response.setBogieId(existingBogie.getBogieId());
+                    response.setBogieNumber(existingBogie.getBogieNumber());
+                    response.setMessage("Bogie already exists");
+                    response.setLocalDateTime(LocalDateTime.now());
+                    trainBogieResponse.add(response);
+
+                } else {
                     TrainBogie newTrain = TrainBogie.builder()
                             .bogieId(bogies.getBogieId())
                             .trainId(bogies.getTrainId())
@@ -114,8 +129,6 @@ public class TrainServicesImpl implements TrainServices {
 
                     trainBogieRepositories.save(newTrain);
                     log.info("Bogie is successfully connected to train");
-
-                    trainBogieResponse = new ArrayList<>();
                     TrainBogieResponse response = new TrainBogieResponse();
                     response.setTranId(newTrain.getTrainId());
                     response.setBogieId(newTrain.getBogieId());
@@ -124,9 +137,6 @@ public class TrainServicesImpl implements TrainServices {
                     response.setLocalDateTime(LocalDateTime.now());
                     trainBogieResponse.add(response);
 
-                } else {
-
-                    throw new TrainServiceException("I think these bogies already exist.");
                 }
             } else {
                 throw new TrainServiceException("The train is not available on our server that you are trying to find.");
