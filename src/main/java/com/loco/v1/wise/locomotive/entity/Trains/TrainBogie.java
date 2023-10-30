@@ -31,6 +31,7 @@ public class TrainBogie {
     private boolean isElectric;
     private int numberOfDoors;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "pk_trainId")
     private Train trainBogie;

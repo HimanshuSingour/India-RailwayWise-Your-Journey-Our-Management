@@ -14,12 +14,11 @@ public interface TrainServices {
 
     TrainResponse addTrain(Train train);
     List<TrainBogieResponse> addTrainBogies(List<TrainBogieRequest> trainBogies);
+    Train getTrainInformationByTrainName(String trainName);
+    Train getTrainInformationByTrainNumber(String trainNumber);
+    List<Train> getAllTrainsBySourceAndDestination(String source, String destinations);
 
     // TODO; Need to implements
-
-//    TrainResponse getTrainInformationByTrainName(String trainName);
-//    TrainResponse getTrainInformationByTrainNumber(String trainNumber);
-//    TrainResponse getTrainInformationByTrainInit(String trainInit);
 //    TrainResponse bookATrain(TrainPassengersInfo trainPassengersInfo, TrainRequest trainRequest);
 //    TrainResponse cancelBookingTrain(TrainRequest trainRequest);
 //    TrainResponse getAvailableTrains(TrainRequest trainRequest);
@@ -31,7 +30,6 @@ public interface TrainServices {
 //    List<Train> getAllTheTrains();
 //    List<Train> getAllTrainsByDestination(String Destination);
 //    List<Train> getAllTrainsBySource(String Source);
-//    List<Train> getAllTrainsBySourceAndDestination(String source, String destinations);
 //    TrainPassengersInfo getPassengerInfoByPNRNumber(String PNRNum);
 
 

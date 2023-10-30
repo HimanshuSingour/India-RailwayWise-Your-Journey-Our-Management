@@ -145,5 +145,46 @@ public class TrainServicesImpl implements TrainServices {
 
         return trainBogieResponse;
     }
+
+    @Override
+    public Train getTrainInformationByTrainName(String trainName) {
+
+        Optional<Train> train = trainRepositories.findByTrainName(trainName);
+
+        if (trainName.isEmpty() || trainName.isBlank())
+            throw new TrainServiceException("Invalid Input !!");
+
+        if (train.isPresent()) return train.get();
+
+        throw new TrainServiceException("Invalid Number !! Train with this number is not exist.");
+    }
+
+    @Override
+    public Train getTrainInformationByTrainNumber(String trainNumber) {
+
+        Optional<Train> train = trainRepositories.findByTrainNumber(trainNumber);
+
+        if (trainNumber.isEmpty() || trainNumber.isBlank())
+            throw new TrainServiceException("Blank Is not allowed !!");
+
+        if (train.isPresent()) return train.get();
+
+        throw new TrainServiceException("Invalid Number !! Train with this number is not exist.");
+
+    }
+
+    @Override
+    public List<Train> getAllTrainsBySourceAndDestination(String source, String destinations) {
+
+        Optional<List<Train>> train = trainRepositories.findBySourceAndDestination(source, destinations);
+
+        if (source.isEmpty() && source.isBlank() || source.isEmpty() || destinations.isBlank())
+            throw new TrainServiceException("Blank Is not allowed !!");
+
+        if (train.isPresent()) return train.get();
+
+        throw new TrainServiceException("Invalid Number !! Train with this number is not exist.");
+
+    }
 }
 
