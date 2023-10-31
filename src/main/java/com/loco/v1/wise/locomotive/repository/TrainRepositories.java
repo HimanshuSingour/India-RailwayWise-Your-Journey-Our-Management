@@ -13,8 +13,15 @@ import java.util.Optional;
 public interface TrainRepositories extends JpaRepository<Train, String> {
 
     Optional<Train> findByTrainName(String trainName);
+
     Optional<Train> findByTrainNumber(String trainNumber);
 
     @Query("SELECT u FROM Train u WHERE u.sourceStation = :sourceStation AND u.destinationStation = :destinationStation ")
     Optional<List<Train>> findBySourceAndDestination(String sourceStation, String destinationStation);
+
+    @Query("SELECT u FROM Train u WHERE u.destinationStation = :destinationStation")
+    Optional<List<Train>> findByDestination(String destinationStation);
+
+    @Query("SELECT u FROM Train u WHERE u.sourceStation = :sourceStation")
+    Optional<List<Train>> findBySource(String sourceStation);
 }

@@ -65,4 +65,23 @@ public class TrainController {
         log.info("Train information retrieved successfully: {}", trainResponse);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(trainResponse);
     }
+
+    @GetMapping("/get/info/destination/v4/{destination}")
+    public ResponseEntity<List<Train>> getTrainByDestinationStation(@PathVariable String destination) {
+        log.info("Received a request to get train information by source and destination: Destination={}",destination);
+        List<Train> trainResponse = trainServices.getAllTrainsByDestination(destination);
+        log.info("Train information retrieved successfully: {}", trainResponse);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(trainResponse);
+    }
+
+    @GetMapping("/get/info/source/v4/{source}")
+    public ResponseEntity<List<Train>> getTrainBySourceStation(@PathVariable String source) {
+        log.info("Received a request to get train information by source and destination: Source={}", source);
+        List<Train> trainResponse = trainServices.getAllTrainsBySource(source);
+        log.info("Train information retrieved successfully: {}", trainResponse);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(trainResponse);
+    }
+
+
+
 }

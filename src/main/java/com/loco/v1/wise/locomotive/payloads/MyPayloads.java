@@ -7,6 +7,10 @@ import java.util.Random;
 @Component
 public class MyPayloads {
 
+    private static int counter = 0;
+    private static final String prefix = "B";
+    private static final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
     // Train INIT
     public static String forTrainInIt() {
 
@@ -39,4 +43,17 @@ public class MyPayloads {
         return idBuilder.toString();
     }
 
+    public static String generateBogieName() {
+
+        counter++;
+        StringBuilder randomChars = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < 2; i++) {
+            randomChars.append(characters.charAt(random.nextInt(characters.length())));
+        }
+
+        return prefix + counter + randomChars.toString();
+    }
+
 }
+

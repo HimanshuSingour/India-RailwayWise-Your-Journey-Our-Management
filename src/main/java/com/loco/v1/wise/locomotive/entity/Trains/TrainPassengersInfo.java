@@ -1,5 +1,6 @@
 package com.loco.v1.wise.locomotive.entity.Trains;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,6 +29,7 @@ public class TrainPassengersInfo {
     private String ticketNumber;
     private String pnrNumber;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pk_trainId")
     private Train trainPassengerInfo;

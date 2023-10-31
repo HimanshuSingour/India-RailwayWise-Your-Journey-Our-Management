@@ -97,7 +97,6 @@ public class TrainServicesImpl implements TrainServices {
             if (train.isPresent()) {
                 Optional<TrainBogie> trainBogie = trainBogieRepositories.findById(bogies.getBogieId());
 
-                // above will give if the bogie is already exists and bogie is not exist and added now
                 if (trainBogie.isPresent()) {
                     TrainBogie existingBogie = trainBogie.get();
                     TrainBogieResponse response = new TrainBogieResponse();
@@ -109,11 +108,12 @@ public class TrainServicesImpl implements TrainServices {
                     trainBogieResponse.add(response);
 
                 } else {
+
                     TrainBogie newTrain = TrainBogie.builder()
                             .bogieId(bogies.getBogieId())
                             .trainId(bogies.getTrainId())
                             .bogieNumber(bogies.getBogieNumber())
-                            .bogieName(bogies.getBogieName())
+                            .bogieName(MyPayloads.generateBogieName())
                             .bogieType(bogies.getBogieType())
                             .bogieWeight(bogies.getBogieWeight())
                             .maxPassengerCapacity(bogies.getMaxPassengerCapacity())
@@ -185,6 +185,29 @@ public class TrainServicesImpl implements TrainServices {
 
         throw new TrainServiceException("Invalid Number !! Train with this number is not exist.");
 
+    }
+
+    @Override
+    public List<Train> getAllTheTrains() {
+        return trainRepositories.findAll();
+    }
+
+    @Override
+    public List<Train> getAllTrainsByDestination(String destination) {
+        Optional<List<Train>> train = trainRepositories.findByDestination(destination);
+        if (train.isPresent()) {
+            return train.get();
+        }
+        throw new TrainServiceException("No train is found in your given destination");
+    }
+
+    @Override
+    public List<Train> getAllTrainsBySource(String Source) {
+        Optional<List<Train>> train = trainRepositories.findBySource(Source);
+        if (train.isPresent()) {
+            return train.get();
+        }
+        throw new TrainServiceException("No train is found in your given source");
     }
 }
 
