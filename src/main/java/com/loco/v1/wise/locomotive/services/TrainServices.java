@@ -1,9 +1,11 @@
 package com.loco.v1.wise.locomotive.services;
 
+import com.loco.v1.wise.locomotive.dtos.TrainPassangerInfo.TrainPassengerInfoRequest;
 import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieRequest;
 import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieResponse;
 import com.loco.v1.wise.locomotive.dtos.TrainResponse;
 import com.loco.v1.wise.locomotive.entity.Trains.Train;
+
 import java.util.List;
 
 public interface TrainServices {
@@ -16,10 +18,10 @@ public interface TrainServices {
     List<Train> getAllTheTrains();
     List<Train> getAllTrainsByDestination(String Destination);
     List<Train> getAllTrainsBySource(String Source);
+    String bookATrain(TrainPassengerInfoRequest trainPassengerInfoRequest);
+    String cancelBookingTrain(TrainPassengerInfoRequest trainPassengerInfoRequest);
 
     // TODO; Need to implements
-//    TrainResponse bookATrain(TrainPassengersInfo trainPassengersInfo, TrainRequest trainRequest);
-//    TrainResponse cancelBookingTrain(TrainRequest trainRequest);
 //    TrainResponse getAvailableTrains(TrainRequest trainRequest);
 //    TrainResponse getTrainStatus(TrainRequest trainRequest);
 //    TrainPassengersInfo getPassengerInfoByName(String passengerName);

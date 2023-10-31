@@ -43,6 +43,21 @@ public class MyPayloads {
         return idBuilder.toString();
     }
 
+    public static String forPnrNumberGenerator() {
+
+        String digits = "0123456789";
+        StringBuilder idBuilder = new StringBuilder();
+
+        Random random = new Random();
+        for (int i = 0; i < 10; i++) {
+            int randomIndex = random.nextInt(digits.length());
+            char randomChar = digits.charAt(randomIndex);
+            idBuilder.append(randomChar);
+        }
+
+        return idBuilder.toString();
+    }
+
     public static String generateBogieName() {
 
         counter++;

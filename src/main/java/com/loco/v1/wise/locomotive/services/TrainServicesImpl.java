@@ -1,13 +1,16 @@
 package com.loco.v1.wise.locomotive.services;
 
+import com.loco.v1.wise.locomotive.dtos.TrainPassangerInfo.TrainPassengerInfoRequest;
 import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieRequest;
 import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieResponse;
 import com.loco.v1.wise.locomotive.dtos.TrainResponse;
 import com.loco.v1.wise.locomotive.entity.Trains.Train;
 import com.loco.v1.wise.locomotive.entity.Trains.TrainBogie;
+import com.loco.v1.wise.locomotive.entity.Trains.TrainPassengersInfo;
 import com.loco.v1.wise.locomotive.exceptions.TrainServiceException;
 import com.loco.v1.wise.locomotive.payloads.MyPayloads;
 import com.loco.v1.wise.locomotive.repository.TrainBogieRepositories;
+import com.loco.v1.wise.locomotive.repository.TrainPassengerInfoRepositories;
 import com.loco.v1.wise.locomotive.repository.TrainRepositories;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +29,9 @@ public class TrainServicesImpl implements TrainServices {
 
     @Autowired
     private TrainRepositories trainRepositories;
+
+    @Autowired
+    private TrainPassengerInfoRepositories trainPassengerInfoRepositories;
 
     @Autowired
     private TrainBogieRepositories trainBogieRepositories;
@@ -208,6 +214,45 @@ public class TrainServicesImpl implements TrainServices {
             return train.get();
         }
         throw new TrainServiceException("No train is found in your given source");
+    }
+
+    @Override
+    public String bookATrain(TrainPassengerInfoRequest trainPassengerInfoRequest) {
+
+        Optional<Train> train = trainRepositories.findByTrainNumber(trainPassengerInfoRequest.getTrainNumber());
+        String passengerIdGenerator = UUID.randomUUID().toString();
+        if (train.isPresent()) {
+            Train gettingTrainInfo = train.get();
+            if ("ACTIVE".equals(gettingTrainInfo.getTrainStatus()) ||
+                    trainPassengerInfoRequest.getTrainName().equals(gettingTrainInfo.getTrainName()) ||
+                    trainPassengerInfoRequest.getTrainNumber().equals(gettingTrainInfo.getTrainNumber())) {
+
+                TrainPassengersInfo trainPassengersInfo = TrainPassengersInfo.builder()
+                        .passengerId(passengerIdGenerator)
+                        .age(trainPassengerInfoRequest.getAge())
+                        .address(trainPassengerInfoRequest.getAddress())
+                        .email(trainPassengerInfoRequest.getEmail())
+                        .phone(trainPassengerInfoRequest.getPhone())
+                        .gender(trainPassengerInfoRequest.getGender())
+                        .trainPassengerInfo(train.get())
+                        .nationality(trainPassengerInfoRequest.getNationality())
+                        .pnrNumber(MyPayloads.forPnrNumberGenerator())
+                        .ticketNumber("1223")
+                        .seatNumber("123")
+                        .firstName(trainPassengerInfoRequest.getFirstName())
+                        .lastName(trainPassengerInfoRequest.getLastName())
+                        .build();
+                trainPassengerInfoRepositories.save(trainPassengersInfo);
+            }
+
+        }
+
+        return "saved";
+    }
+
+    @Override
+    public String cancelBookingTrain(TrainPassengerInfoRequest trainPassengerInfoRequest) {
+        return null;
     }
 }
 

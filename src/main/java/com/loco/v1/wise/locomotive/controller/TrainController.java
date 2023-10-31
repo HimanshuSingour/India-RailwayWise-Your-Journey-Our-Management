@@ -9,7 +9,6 @@ import com.loco.v1.wise.locomotive.services.TrainServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import org.slf4j.Logger;
@@ -68,7 +67,7 @@ public class TrainController {
 
     @GetMapping("/get/info/destination/v4/{destination}")
     public ResponseEntity<List<Train>> getTrainByDestinationStation(@PathVariable String destination) {
-        log.info("Received a request to get train information by source and destination: Destination={}",destination);
+        log.info("Received a request to get train information by source and destination: Destination={}", destination);
         List<Train> trainResponse = trainServices.getAllTrainsByDestination(destination);
         log.info("Train information retrieved successfully: {}", trainResponse);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(trainResponse);
@@ -81,7 +80,5 @@ public class TrainController {
         log.info("Train information retrieved successfully: {}", trainResponse);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(trainResponse);
     }
-
-
 
 }

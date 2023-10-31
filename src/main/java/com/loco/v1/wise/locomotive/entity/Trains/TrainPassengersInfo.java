@@ -3,6 +3,7 @@ package com.loco.v1.wise.locomotive.entity.Trains;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Builder
 @Table(name = "TRN_PASS_INFO")
 public class TrainPassengersInfo {
 
@@ -25,7 +27,7 @@ public class TrainPassengersInfo {
     private String email;
     private String nationality;
     private String seatNumber;
-    private String flightNumber;
+    private String trainNumber;
     private String ticketNumber;
     private String pnrNumber;
 
