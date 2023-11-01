@@ -225,74 +225,80 @@ public class TrainServicesImpl implements TrainServices {
         if (train.isPresent()) {
 
             Train gettingTrainInfo = train.get();
-            Optional<TrainPassengersInfo> trainPassengersInfo = trainPassengerInfoRepositories.findById(trainPassengerInfoRequest.getPassengerId());
+            Optional<TrainPassengersInfo> existingSeatInDb = trainPassengerInfoRepositories.findBySeatNumberAndPassengerId(trainPassengerInfoRequest.getSeatNumber(), trainPassengerInfoRequest.getPassengerId());
 
-            if (trainPassengersInfo.isPresent()) {
-                if (Objects.equals(trainPassengersInfo.get().getSeatNumber(), trainPassengerInfoRequest.getSeatNumber())) {
-                    throw new SeatAlreadyBookedException("Seat " + trainPassengersInfo.get().getSeatNumber() + " is already booked by another passenger.");
+            // If already book a seat you are booking
+            if (existingSeatInDb.isPresent()) {
+                throw new SeatAlreadyBookedException("Seat " + trainPassengerInfoRequest.getSeatNumber() + " has already been booked by another passenger. Please choose a different seat.");
+            } else {
+
+                Optional<TrainPassengersInfo> trainPassengersInfo = trainPassengerInfoRepositories.findById(trainPassengerInfoRequest.getPassengerId());
+                // If You are booking a same seat
+                if (trainPassengersInfo.isPresent()) {
+                    if (Objects.equals(trainPassengersInfo.get().getSeatNumber(), trainPassengerInfoRequest.getSeatNumber()) &&
+                            Objects.equals(trainPassengersInfo.get().getPassengerId(), trainPassengerInfoRequest.getPassengerId())) {
+                        throw new SeatAlreadyBookedException("Seat " + trainPassengersInfo.get().getSeatNumber() + " has already been booked by you. You will be notified on your mobile number soon.");
+                    }
+                    trainPassengersCreate = TrainPassengersInfo.builder()
+                            .passengerId(trainPassengerInfoRequest.getPassengerId())
+                            .trainId(gettingTrainInfo.getTrainId())
+                            .trainName(trainPassengerInfoRequest.getTrainName())
+                            .pnrNumber(MyPayloads.forPnrNumberGenerator())
+                            .ticketNumber(MyPayloads.generateTicketNumber())
+                            .seatNumber(trainPassengerInfoRequest.getSeatNumber())
+                            .trainNumber(gettingTrainInfo.getTrainNumber())
+                            .firstName(trainPassengerInfoRequest.getFirstName())
+                            .lastName(trainPassengerInfoRequest.getLastName())
+                            .age(trainPassengerInfoRequest.getAge())
+                            .address(trainPassengerInfoRequest.getAddress())
+                            .email(trainPassengerInfoRequest.getEmail())
+                            .phone(trainPassengerInfoRequest.getPhone())
+                            .gender(trainPassengerInfoRequest.getGender())
+                            .trainPassengerInfo(train.get())
+                            .passportNumber(trainPassengerInfoRequest.getPassportNumber())
+                            .nationality(trainPassengerInfoRequest.getNationality())
+                            .messageStatus(TICKET_BOOKED_SUCCESSFULLY)
+                            .build();
+
+                    trainPassengerInfoRepositories.save(trainPassengersCreate);
                 }
+                trainPassengersCreate = TrainPassengersInfo.builder()
+                        .passengerId(trainPassengerInfoRequest.getPassengerId())
+                        .trainId(gettingTrainInfo.getTrainId())
+                        .trainName(trainPassengerInfoRequest.getTrainName())
+                        .pnrNumber(MyPayloads.forPnrNumberGenerator())
+                        .ticketNumber(MyPayloads.generateTicketNumber())
+                        .seatNumber(trainPassengerInfoRequest.getSeatNumber())
+                        .trainNumber(gettingTrainInfo.getTrainNumber())
+                        .firstName(trainPassengerInfoRequest.getFirstName())
+                        .lastName(trainPassengerInfoRequest.getLastName())
+                        .age(trainPassengerInfoRequest.getAge())
+                        .address(trainPassengerInfoRequest.getAddress())
+                        .email(trainPassengerInfoRequest.getEmail())
+                        .phone(trainPassengerInfoRequest.getPhone())
+                        .gender(trainPassengerInfoRequest.getGender())
+                        .trainPassengerInfo(train.get())
+                        .passportNumber(trainPassengerInfoRequest.getPassportNumber())
+                        .nationality(trainPassengerInfoRequest.getNationality())
+                        .messageStatus(TICKET_BOOKED_SUCCESSFULLY)
+                        .build();
+
+                trainPassengerInfoRepositories.save(trainPassengersCreate);
+
             }
 
-            if (Objects.equals(trainPassengersInfo.get().getSeatNumber(), trainPassengerInfoRequest.getSeatNumber())
-                    && Objects.equals(trainPassengersInfo.get().getPassengerId(), trainPassengerInfoRequest.getPassengerId())) {
-                throw new PassengerAlreadyBookedException("Passenger with ID " + trainPassengerInfoRequest.getPassengerId() + " has already booked this seat + " +
-                        trainPassengersInfo.get().getSeatNumber());
-            }
-            trainPassengersCreate = TrainPassengersInfo.builder()
-                    .passengerId(trainPassengerInfoRequest.getPassengerId())
-                    .trainId(gettingTrainInfo.getTrainId())
-                    .trainName(trainPassengerInfoRequest.getTrainName())
-                    .pnrNumber(MyPayloads.forPnrNumberGenerator())
-                    .ticketNumber(MyPayloads.generateTicketNumber())
-                    .seatNumber(trainPassengerInfoRequest.getSeatNumber())
-                    .trainNumber(gettingTrainInfo.getTrainNumber())
-                    .firstName(trainPassengerInfoRequest.getFirstName())
-                    .lastName(trainPassengerInfoRequest.getLastName())
-                    .age(trainPassengerInfoRequest.getAge())
-                    .address(trainPassengerInfoRequest.getAddress())
-                    .email(trainPassengerInfoRequest.getEmail())
-                    .phone(trainPassengerInfoRequest.getPhone())
-                    .gender(trainPassengerInfoRequest.getGender())
-                    .trainPassengerInfo(train.get())
-                    .passportNumber(trainPassengerInfoRequest.getPassportNumber())
-                    .nationality(trainPassengerInfoRequest.getNationality())
-                    .messageStatus(TICKET_BOOKED_SUCCESSFULLY)
-                    .build();
-
-            trainPassengerInfoRepositories.save(trainPassengersCreate);
-
-            trainPassengersCreate = TrainPassengersInfo.builder()
-                    .passengerId(trainPassengerInfoRequest.getPassengerId())
-                    .trainId(gettingTrainInfo.getTrainId())
-                    .trainName(trainPassengerInfoRequest.getTrainName())
-                    .pnrNumber(MyPayloads.forPnrNumberGenerator())
-                    .ticketNumber(MyPayloads.generateTicketNumber())
-                    .seatNumber(trainPassengerInfoRequest.getSeatNumber())
-                    .trainNumber(gettingTrainInfo.getTrainNumber())
-                    .firstName(trainPassengerInfoRequest.getFirstName())
-                    .lastName(trainPassengerInfoRequest.getLastName())
-                    .age(trainPassengerInfoRequest.getAge())
-                    .address(trainPassengerInfoRequest.getAddress())
-                    .email(trainPassengerInfoRequest.getEmail())
-                    .phone(trainPassengerInfoRequest.getPhone())
-                    .gender(trainPassengerInfoRequest.getGender())
-                    .trainPassengerInfo(train.get())
-                    .passportNumber(trainPassengerInfoRequest.getPassportNumber())
-                    .nationality(trainPassengerInfoRequest.getNationality())
-                    .messageStatus(TICKET_BOOKED_SUCCESSFULLY)
-                    .build();
-
-            trainPassengerInfoRepositories.save(trainPassengersCreate);
         }
 
         return trainPassengersCreate;
     }
+
 
     @Override
     public String cancelBookingTrain(TrainPassengerInfoRequest trainPassengerInfoRequest) {
         return null;
     }
 
-
 }
+
+
 
