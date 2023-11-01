@@ -54,26 +54,23 @@ public class TrainServicesImpl implements TrainServices {
         if (train.isPresent()) {
 
             Train gettingTrainInfo = train.get();
-            Optional<TrainPassengersInfo> existingSeat = trainPassengerInfoRepositories.findByPassengerIdAndSeatNumber(trainPassengerInfoRequest.getPassengerId(), trainPassengerInfoRequest.getSeatNumber());
+            Optional<TrainPassengersInfo> existingSeat = trainPassengerInfoRepositories.findBySeatNumber(trainPassengerInfoRequest.getSeatNumber());
+            Optional<TrainPassengersInfo> trainPassengersInfo = trainPassengerInfoRepositories.findById(trainPassengerInfoRequest.getPassengerId());
 
             /* If already booked a seat by another passenger, that you are booking */
             if (existingSeat.isPresent()) {
-                throw new SeatAlreadyBookedException("Seat " + trainPassengerInfoRequest.getSeatNumber() + " has already been booked by another passenger. Please choose a different seat.");
-
-            } else {
-                Optional<TrainPassengersInfo> trainPassengersInfo = trainPassengerInfoRepositories.findById(trainPassengerInfoRequest.getPassengerId());
-
-                // If You are booking a same seat
-                if (trainPassengersInfo.isPresent()) {
-
-                    if (Objects.equals(trainPassengersInfo.get().getSeatNumber(), trainPassengerInfoRequest.getSeatNumber()) &&
-                            Objects.equals(trainPassengersInfo.get().getPassengerId(), trainPassengerInfoRequest.getPassengerId())) {
-                        throw new SeatAlreadyBookedException("Seat " + trainPassengersInfo.get().getSeatNumber() + " has already been booked by you. You will be notified on your mobile number soon.");
-                    }
-                    return createProfile(trainPassengerInfoRequest, gettingTrainInfo, train.get());
+                if (Objects.equals(existingSeat.get().getPassengerId(), trainPassengerInfoRequest.getPassengerId())) {
+                    throw new SeatAlreadyBookedException("Seat " + trainPassengersInfo.get().getSeatNumber() + " has already been booked by you. You will be notified on your mobile number soon.");
+                } else {
+                    throw new SeatAlreadyBookedException("Seat " + trainPassengerInfoRequest.getSeatNumber() + " has already been booked by another passenger. Please choose a different seat.");
                 }
+            }
+
+            // If You are booking a same seat
+            if (trainPassengersInfo.isPresent()) {
                 return createProfile(trainPassengerInfoRequest, gettingTrainInfo, train.get());
             }
+            return createProfile(trainPassengerInfoRequest, gettingTrainInfo, train.get());
         }
         throw new TrainServiceException("Train Not Found.");
     }
@@ -102,18 +99,18 @@ public class TrainServicesImpl implements TrainServices {
 
         trainPassengerInfoRepositories.save(trainPassengersCreate);
 
-        ResponseEntity<AccountInformation> accountInformationResponseEntity = restTemplate.getForEntity(URL_FOR_ACCOUNT_SERVICE, AccountInformation.class);
-        AccountInformation accountInformation = accountInformationResponseEntity.getBody();
-
-        if (accountInformation != null) {
-            double mainAccountBalance = accountInformation.getAccountBalance();
-            double priceOfTicket = trainPassengerInfoRequest.getTicketPrice();
-            double main_ticket = mainAccountBalance - priceOfTicket;
-            UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
-            updateAccountBalance.setAccountNumber(accountInformation.getAccountNumber());
-            updateAccountBalance.setAccountBalance(main_ticket);
-            restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
-        }
+//        ResponseEntity<AccountInformation> accountInformationResponseEntity = restTemplate.getForEntity(URL_FOR_ACCOUNT_SERVICE, AccountInformation.class);
+//        AccountInformation accountInformation = accountInformationResponseEntity.getBody();
+//
+//        if (accountInformation != null) {
+//            double mainAccountBalance = accountInformation.getAccountBalance();
+//            double priceOfTicket = trainPassengerInfoRequest.getTicketPrice();
+//            double main_ticket = mainAccountBalance - priceOfTicket;
+//            UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
+//            updateAccountBalance.setAccountNumber(accountInformation.getAccountNumber());
+//            updateAccountBalance.setAccountBalance(main_ticket);
+//            restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
+//        }
         return trainPassengersCreate;
     }
 

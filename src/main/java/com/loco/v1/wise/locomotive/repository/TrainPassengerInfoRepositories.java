@@ -11,5 +11,6 @@ import java.util.Optional;
 @Repository
 public interface TrainPassengerInfoRepositories extends JpaRepository<TrainPassengersInfo , String> {
 
-    Optional<TrainPassengersInfo> findByPassengerIdAndSeatNumber(String passengerId, String seatNumber);
+
+    Optional<TrainPassengersInfo> findBySeatNumber(String seatNumber);
 }

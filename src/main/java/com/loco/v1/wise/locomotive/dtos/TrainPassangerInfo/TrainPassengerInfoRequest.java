@@ -8,7 +8,6 @@ import lombok.ToString;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
 public class TrainPassengerInfoRequest {
 
     private String passengerId;
@@ -25,10 +24,10 @@ public class TrainPassengerInfoRequest {
     private String trainName;
     private String seatNumber;
     private String trainNumber;
-    private String accountNumber;
-    private String ifscCode;
-    private String password;
-    private double ticketPrice;
+//    private String accountNumber;
+//    private String ifscCode;
+//    private String password;
+//    private double ticketPrice;
 
 
 }
