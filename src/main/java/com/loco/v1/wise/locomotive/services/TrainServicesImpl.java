@@ -99,18 +99,18 @@ public class TrainServicesImpl implements TrainServices {
 
         trainPassengerInfoRepositories.save(trainPassengersCreate);
 
-//        ResponseEntity<AccountInformation> accountInformationResponseEntity = restTemplate.getForEntity(URL_FOR_ACCOUNT_SERVICE, AccountInformation.class);
-//        AccountInformation accountInformation = accountInformationResponseEntity.getBody();
-//
-//        if (accountInformation != null) {
-//            double mainAccountBalance = accountInformation.getAccountBalance();
-//            double priceOfTicket = trainPassengerInfoRequest.getTicketPrice();
-//            double main_ticket = mainAccountBalance - priceOfTicket;
-//            UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
-//            updateAccountBalance.setAccountNumber(accountInformation.getAccountNumber());
-//            updateAccountBalance.setAccountBalance(main_ticket);
-//            restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
-//        }
+        ResponseEntity<AccountInformation> accountInformationResponseEntity = restTemplate.getForEntity(URL_FOR_ACCOUNT_SERVICE, AccountInformation.class);
+        AccountInformation accountInformation = accountInformationResponseEntity.getBody();
+
+        if (accountInformation != null) {
+            double mainAccountBalance = accountInformation.getAccountBalance();
+            double priceOfTicket = trainPassengerInfoRequest.getTicketPrice();
+            double main_ticket = mainAccountBalance - priceOfTicket;
+            UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
+            updateAccountBalance.setAccountNumber(accountInformation.getAccountNumber());
+            updateAccountBalance.setAccountBalance(main_ticket);
+            restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
+        }
         return trainPassengersCreate;
     }
 
