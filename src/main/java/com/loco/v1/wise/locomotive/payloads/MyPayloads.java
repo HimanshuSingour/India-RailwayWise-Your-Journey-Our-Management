@@ -11,6 +11,12 @@ public class MyPayloads {
     private static final String prefix = "B";
     private static final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
+    private static final String TICKET_PREFIX = "GSY";
+    private static final String SEAT_PREFIX = "T";
+    private static int ticketNumberCounter = 1;
+    private static int seatNumberCounter = 1;
+    private static final String TICKET_SUFFIX = "GHU";
+
     // Train INIT
     public static String forTrainInIt() {
 
@@ -42,6 +48,20 @@ public class MyPayloads {
 
         return idBuilder.toString();
     }
+
+    public static String generateTicketNumber() {
+        String formattedNumber = String.format("%s%03d%s", TICKET_PREFIX, ticketNumberCounter, TICKET_SUFFIX);
+        ticketNumberCounter++;
+        return formattedNumber;
+    }
+
+    // Generate a new seat number
+    public static String generateSeatNumber() {
+        String formattedNumber = String.format("%s%d", SEAT_PREFIX, seatNumberCounter);
+        seatNumberCounter++;
+        return formattedNumber;
+    }
+
 
     public static String forPnrNumberGenerator() {
 

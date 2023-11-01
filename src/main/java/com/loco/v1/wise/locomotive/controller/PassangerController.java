@@ -3,6 +3,7 @@ package com.loco.v1.wise.locomotive.controller;
 
 import com.loco.v1.wise.locomotive.dtos.TrainPassangerInfo.TrainPassengerInfoRequest;
 import com.loco.v1.wise.locomotive.entity.Trains.Train;
+import com.loco.v1.wise.locomotive.entity.Trains.TrainPassengersInfo;
 import com.loco.v1.wise.locomotive.services.TrainServices;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +22,9 @@ public class PassangerController {
     private TrainServices trainServices;
 
     @GetMapping("/book")
-    public ResponseEntity<String> bookATrain(@RequestBody TrainPassengerInfoRequest trainPassengerInfoRequest) {
+    public ResponseEntity<TrainPassengersInfo> bookATrain(@RequestBody TrainPassengerInfoRequest trainPassengerInfoRequest) {
         log.info("Received a request to get train information by source and destination: Source={}", trainPassengerInfoRequest);
-        String trainResponse = trainServices.bookATrain(trainPassengerInfoRequest);
+        TrainPassengersInfo trainResponse = trainServices.bookATrain(trainPassengerInfoRequest);
         log.info("Train information retrieved successfully: {}", trainResponse);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(trainResponse);
     }

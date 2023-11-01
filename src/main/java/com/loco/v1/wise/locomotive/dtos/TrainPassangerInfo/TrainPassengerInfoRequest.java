@@ -11,17 +11,19 @@ import lombok.ToString;
 @ToString
 public class TrainPassengerInfoRequest {
 
+    private String passengerId;
+    private String trainId;
     private String firstName;
     private String lastName;
     private int age;
+    private String passportNumber;
     private String gender;
     private String address;
     private String phone;
     private String email;
     private String nationality;
-
-    private String trainId;
     private String trainName;
+    private String seatNumber;
     private String trainNumber;
 
 
