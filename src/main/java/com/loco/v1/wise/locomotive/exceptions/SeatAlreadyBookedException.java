@@ -1,4 +1,4 @@
-package com.loco.v1.wise.locomotive.exceptions.handlers;
+package com.loco.v1.wise.locomotive.exceptions;
 
 public class SeatAlreadyBookedException extends RuntimeException{
 
