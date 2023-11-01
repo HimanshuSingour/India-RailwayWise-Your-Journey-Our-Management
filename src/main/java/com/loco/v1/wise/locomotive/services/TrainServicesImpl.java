@@ -4,6 +4,8 @@ import com.loco.v1.wise.locomotive.dtos.TrainPassangerInfo.TrainPassengerInfoReq
 import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieRequest;
 import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieResponse;
 import com.loco.v1.wise.locomotive.dtos.TrainResponse;
+import com.loco.v1.wise.locomotive.dtos.UpdateAccountBalance;
+import com.loco.v1.wise.locomotive.entity.AccountInformation;
 import com.loco.v1.wise.locomotive.entity.Trains.Train;
 import com.loco.v1.wise.locomotive.entity.Trains.TrainBogie;
 import com.loco.v1.wise.locomotive.entity.Trains.TrainPassengersInfo;
@@ -15,11 +17,15 @@ import com.loco.v1.wise.locomotive.repository.TrainPassengerInfoRepositories;
 import com.loco.v1.wise.locomotive.repository.TrainRepositories;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static com.loco.v1.wise.locomotive.config.ExternalServiceUrls.URL_FOR_ACCOUNT_SERVICE;
+import static com.loco.v1.wise.locomotive.config.ExternalServiceUrls.URL_FOR_ACCOUNT_UPDATE_SERVICE;
 import static com.loco.v1.wise.locomotive.constants.TrainConstants.*;
 
 
@@ -29,6 +35,9 @@ public class TrainServicesImpl implements TrainServices {
 
     @Autowired
     private TrainRepositories trainRepositories;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     @Autowired
     private TrainPassengerInfoRepositories trainPassengerInfoRepositories;
@@ -42,15 +51,13 @@ public class TrainServicesImpl implements TrainServices {
     public TrainPassengersInfo bookATrain(TrainPassengerInfoRequest trainPassengerInfoRequest) {
 
         Optional<Train> train = trainRepositories.findById(trainPassengerInfoRequest.getTrainId());
-        TrainPassengersInfo trainPassengersCreate = null;
-
         if (train.isPresent()) {
 
             Train gettingTrainInfo = train.get();
-            Optional<TrainPassengersInfo> existingSeatInDb = trainPassengerInfoRepositories.findBySeatNumberAndPassengerId(trainPassengerInfoRequest.getSeatNumber(), trainPassengerInfoRequest.getPassengerId());
+            Optional<TrainPassengersInfo> existingSeat = trainPassengerInfoRepositories.findByPassengerIdAndSeatNumber(trainPassengerInfoRequest.getPassengerId(), trainPassengerInfoRequest.getSeatNumber());
 
-            /* If already booked a seat, that you are booking */
-            if (existingSeatInDb.isPresent()) {
+            /* If already booked a seat by another passenger, that you are booking */
+            if (existingSeat.isPresent()) {
                 throw new SeatAlreadyBookedException("Seat " + trainPassengerInfoRequest.getSeatNumber() + " has already been booked by another passenger. Please choose a different seat.");
 
             } else {
@@ -94,6 +101,19 @@ public class TrainServicesImpl implements TrainServices {
                 .build();
 
         trainPassengerInfoRepositories.save(trainPassengersCreate);
+
+        ResponseEntity<AccountInformation> accountInformationResponseEntity = restTemplate.getForEntity(URL_FOR_ACCOUNT_SERVICE, AccountInformation.class);
+        AccountInformation accountInformation = accountInformationResponseEntity.getBody();
+
+        if (accountInformation != null) {
+            double mainAccountBalance = accountInformation.getAccountBalance();
+            double priceOfTicket = trainPassengerInfoRequest.getTicketPrice();
+            double main_ticket = mainAccountBalance - priceOfTicket;
+            UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
+            updateAccountBalance.setAccountNumber(accountInformation.getAccountNumber());
+            updateAccountBalance.setAccountBalance(main_ticket);
+            restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
+        }
         return trainPassengersCreate;
     }
 
