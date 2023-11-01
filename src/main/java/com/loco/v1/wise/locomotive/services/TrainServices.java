@@ -28,7 +28,6 @@ public interface TrainServices {
 //    TrainPassengersInfo getPassengerInfoByName(String passengerName);
 //    TrainPassengersInfo getPassengerInfoById(String passengerId);
 //    TrainResponse getStatusByPNRNumber(TrainRequest trainRequest);
-//    TrainResponse updatePassengerInfo(TrainRequest trainRequest);
 //    TrainPassengersInfo getPassengerInfoByPNRNumber(String PNRNum);
 
 

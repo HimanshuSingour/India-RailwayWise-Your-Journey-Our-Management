@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -48,6 +49,7 @@ public class TrainServicesImpl implements TrainServices {
     private final LocalDateTime localDateTime = LocalDateTime.now();
 
     @Override
+    @Transactional
     public TrainPassengersInfo bookATrain(TrainPassengerInfoRequest trainPassengerInfoRequest) {
 
         Optional<Train> train = trainRepositories.findById(trainPassengerInfoRequest.getTrainId());
@@ -99,16 +101,20 @@ public class TrainServicesImpl implements TrainServices {
 
         trainPassengerInfoRepositories.save(trainPassengersCreate);
 
-        ResponseEntity<AccountInformation> accountInformationResponseEntity = restTemplate.getForEntity(URL_FOR_ACCOUNT_SERVICE, AccountInformation.class);
-        AccountInformation accountInformation = accountInformationResponseEntity.getBody();
+        ResponseEntity<AccountInformation> response = restTemplate.getForEntity(
+                URL_FOR_ACCOUNT_SERVICE + trainPassengerInfoRequest.getAccountNumber() + "/" + trainPassengerInfoRequest.getIfscCode() + "/" + trainPassengerInfoRequest.getPassword(),
+                AccountInformation.class);
+        AccountInformation accountInformation = response.getBody();
 
         if (accountInformation != null) {
             double mainAccountBalance = accountInformation.getAccountBalance();
             double priceOfTicket = trainPassengerInfoRequest.getTicketPrice();
             double main_ticket = mainAccountBalance - priceOfTicket;
+
             UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
             updateAccountBalance.setAccountNumber(accountInformation.getAccountNumber());
             updateAccountBalance.setAccountBalance(main_ticket);
+
             restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
         }
         return trainPassengersCreate;

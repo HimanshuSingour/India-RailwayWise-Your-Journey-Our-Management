@@ -2,7 +2,7 @@
 
 # Database Configuration
 server:
-  port: 1010
+  port: 6060
 
 spring:
   datasource:
