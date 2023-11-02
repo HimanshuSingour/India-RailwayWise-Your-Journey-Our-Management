@@ -139,7 +139,7 @@ public class TrainServicesImpl implements TrainServices {
     private static UpdateAccountBalance getUpdateAccountBalance(TrainPassengerInfoRequest trainPassengerInfoRequest, AccountInformation accountInformation) {
         double priceOfTicket = trainPassengerInfoRequest.getTicketPrice();
 
-        // if person having insufficient fund and trying to book seat
+        // if person having insufficient fund and trying to book a seat
         if(priceOfTicket > accountInformation.getAccountBalance()){
             throw new AccountBalanceException("Ticket is not booked because you have insufficient balance in your account.");
         }
@@ -160,7 +160,10 @@ public class TrainServicesImpl implements TrainServices {
         if(seat.isPresent()){
 
 
-            // TODO: falling back everything,need to implement
+            /* TODO: falling back everything,need to implement
+            *   1. Refund Process
+            *   2. The Reserved Seat Is now UnReserved
+            *   3. remove that person information and the seat information that he reserved */
         }
         return null;
     }
