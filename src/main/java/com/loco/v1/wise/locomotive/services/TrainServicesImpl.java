@@ -11,6 +11,7 @@ import com.loco.v1.wise.locomotive.entity.Trains.TrainBogie;
 import com.loco.v1.wise.locomotive.entity.Trains.TrainPassengersInfo;
 import com.loco.v1.wise.locomotive.exceptions.TrainServiceException;
 import com.loco.v1.wise.locomotive.exceptions.SeatAlreadyBookedException;
+import com.loco.v1.wise.locomotive.exceptions.ValidationFailedException;
 import com.loco.v1.wise.locomotive.payloads.MyPayloads;
 import com.loco.v1.wise.locomotive.repository.TrainBogieRepositories;
 import com.loco.v1.wise.locomotive.repository.TrainPassengerInfoRepositories;
@@ -22,8 +23,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static com.loco.v1.wise.locomotive.config.ExternalServiceUrls.URL_FOR_ACCOUNT_SERVICE;
 import static com.loco.v1.wise.locomotive.config.ExternalServiceUrls.URL_FOR_ACCOUNT_UPDATE_SERVICE;
@@ -36,45 +39,74 @@ public class TrainServicesImpl implements TrainServices {
 
     @Autowired
     private TrainRepositories trainRepositories;
-
     @Autowired
     private RestTemplate restTemplate;
-
     @Autowired
     private TrainPassengerInfoRepositories trainPassengerInfoRepositories;
-
     @Autowired
     private TrainBogieRepositories trainBogieRepositories;
 
+
     private final LocalDateTime localDateTime = LocalDateTime.now();
+
+    public boolean validationChecks(TrainPassengerInfoRequest trainPassengerInfoRequest) {
+
+        String[] checkFields = {
+                trainPassengerInfoRequest.getPassengerId(), trainPassengerInfoRequest.getTrainId(), trainPassengerInfoRequest.getFirstName(),
+                trainPassengerInfoRequest.getLastName(), trainPassengerInfoRequest.getAge() + "", trainPassengerInfoRequest.getGender(),
+                trainPassengerInfoRequest.getAddress(), trainPassengerInfoRequest.getPhone(), trainPassengerInfoRequest.getEmail(),
+                trainPassengerInfoRequest.getNationality(), trainPassengerInfoRequest.getTrainName(), trainPassengerInfoRequest.getSeatNumber(),
+                trainPassengerInfoRequest.getAccountNumber(), trainPassengerInfoRequest.getIfscCode(),
+                trainPassengerInfoRequest.getPassword()
+        };
+
+        for (int i = 0; i < checkFields.length; i++) {
+            if (checkFields[i] == null || checkFields[i].isEmpty()) {
+                throw new IllegalArgumentException(getFieldName(i) + " cannot be empty ");
+            }
+        }
+        return true;
+    }
+
+    private String getFieldName(int index) {
+        String[] fieldNames = {
+                "Passenger ID", "Train ID", "First Name", "Last Name", "Age", "Gender", "Address", "Phone", "Email", "Nationality", "Train Name", "Seat Number", "Account Number", "IFSC Code", "Password"
+        };
+        return fieldNames[index];
+    }
 
     @Override
     @Transactional
     public TrainPassengersInfo bookATrain(TrainPassengerInfoRequest trainPassengerInfoRequest) {
 
-        Optional<Train> train = trainRepositories.findById(trainPassengerInfoRequest.getTrainId());
-        if (train.isPresent()) {
+        if (validationChecks(trainPassengerInfoRequest)) {
 
-            Train gettingTrainInfo = train.get();
-            Optional<TrainPassengersInfo> existingSeat = trainPassengerInfoRepositories.findBySeatNumber(trainPassengerInfoRequest.getSeatNumber());
-            Optional<TrainPassengersInfo> trainPassengersInfo = trainPassengerInfoRepositories.findById(trainPassengerInfoRequest.getPassengerId());
+            Optional<Train> train = trainRepositories.findById(trainPassengerInfoRequest.getTrainId());
+            if (train.isPresent()) {
 
-            /* If already booked a seat by another passenger, that you are booking */
-            if (existingSeat.isPresent()) {
-                if (Objects.equals(existingSeat.get().getPassengerId(), trainPassengerInfoRequest.getPassengerId())) {
-                    throw new SeatAlreadyBookedException("Seat " + trainPassengersInfo.get().getSeatNumber() + " has already been booked by you. You will be notified on your mobile number soon.");
-                } else {
-                    throw new SeatAlreadyBookedException("Seat " + trainPassengerInfoRequest.getSeatNumber() + " has already been booked by another passenger. Please choose a different seat.");
+                Train gettingTrainInfo = train.get();
+                Optional<TrainPassengersInfo> existingSeat = trainPassengerInfoRepositories.findBySeatNumber(trainPassengerInfoRequest.getSeatNumber());
+                Optional<TrainPassengersInfo> trainPassengersInfo = trainPassengerInfoRepositories.findById(trainPassengerInfoRequest.getPassengerId());
+
+                /* If already booked a seat by another passenger, that you are booking */
+                if (existingSeat.isPresent()) {
+                    if (Objects.equals(existingSeat.get().getPassengerId(), trainPassengerInfoRequest.getPassengerId()))
+                        throw new SeatAlreadyBookedException("Seat " + trainPassengersInfo.get().getSeatNumber() + " has already been booked by you. You will be notified on your mobile number soon.");
+                    else
+                        throw new SeatAlreadyBookedException("Seat " + trainPassengerInfoRequest.getSeatNumber() + " has already been booked by another passenger. Please choose a different seat.");
+
                 }
-            }
 
-            // If You are booking a same seat
-            if (trainPassengersInfo.isPresent()) {
+                if (trainPassengersInfo.isPresent()) {
+                    return createProfile(trainPassengerInfoRequest, gettingTrainInfo, train.get());
+                }
                 return createProfile(trainPassengerInfoRequest, gettingTrainInfo, train.get());
             }
-            return createProfile(trainPassengerInfoRequest, gettingTrainInfo, train.get());
+            throw new TrainServiceException("The detail you are entering is incorrect");
+
         }
-        throw new TrainServiceException("Train Not Found.");
+
+        throw new ValidationFailedException("Something went wrong");
     }
 
     public TrainPassengersInfo createProfile(TrainPassengerInfoRequest trainPassengerInfoRequest, Train gettingTrainInfo, Train train) {

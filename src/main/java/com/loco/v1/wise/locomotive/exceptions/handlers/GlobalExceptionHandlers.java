@@ -26,8 +26,10 @@ public class GlobalExceptionHandlers {
         return new ResponseEntity<>(errorMessages , HttpStatus.OK);
     }
 
-    @ExceptionHandler(SeatAlreadyBookedException.class)
-    ResponseEntity<ErrorMessages> seatAlreadyBooked(SeatAlreadyBookedException ex){
+
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    ResponseEntity<ErrorMessages> alreadyBookedASeat(IllegalArgumentException ex){
         ErrorMessages errorMessages = new ErrorMessages();
         errorMessages.setMessage(ex.getMessage());
         return new ResponseEntity<>(errorMessages , HttpStatus.OK);
