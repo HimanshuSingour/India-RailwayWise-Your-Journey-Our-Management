@@ -158,8 +158,14 @@ public class TrainServicesImpl implements TrainServices {
         return updateAccountBalance;
     }
 
-
+    @Override
+    @Transactional
     public TrainBoolCancellationResponse cancelBookingTrain(String seatNumber, String trainNumber, String accountNumber) {
+
+        // TODO:
+        //  Remove the accountNumber from the above parameter
+        //  and get from the actual account information and accountNumber from there
+        // TODO: Not as a parameter , but as an retrievable
 
         TrainBoolCancellationResponse trainBoolCancellationResponse = new TrainBoolCancellationResponse();
         Optional<TrainPassengersInfo> optionalPassengersInfo = trainPassengerInfoRepositories.findBySeatNumber(seatNumber);
@@ -173,11 +179,13 @@ public class TrainServicesImpl implements TrainServices {
 
                 try {
                     UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
+
+                    // TODO; Need to update the mainBalance + priceOfTicket Below
                     updateAccountBalance.setAccountNumber(accountNumber);
                     updateAccountBalance.setAccountBalance(seat.getPriceOfTicket());
                     restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
 
-                    trainBoolCancellationResponse.setMessage("Booking successfully canceled.");
+                    trainBoolCancellationResponse.setMessage("Booking successfully canceled. You will get notification on your mobile number soon");
                     trainBoolCancellationResponse.setReFund(String.valueOf(seat.getPriceOfTicket()));
 
                     trainBookedRepositories.delete(seat);
