@@ -10,4 +10,8 @@ import java.util.Optional;
 @Repository
 public interface TrainBookedRepositories extends JpaRepository<BookedSeat , String> {
 
+
+    @Query("SELECT u FROM BookedSeat u WHERE u.seatNumber = :seatNumber")
+    Optional<BookedSeat> findBySeatNumber(String seatNumber);
+    int countBySeatNumber(String seatNumber);
 }

@@ -1,5 +1,6 @@
 package com.loco.v1.wise.locomotive.services;
 
+import com.loco.v1.wise.locomotive.dtos.PnrStatus.PnrStatusResponse;
 import com.loco.v1.wise.locomotive.dtos.TrainBoolCancellationResponse;
 import com.loco.v1.wise.locomotive.dtos.TrainPassangerInfo.TrainPassengerInfoRequest;
 import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieRequest;
@@ -11,10 +12,7 @@ import com.loco.v1.wise.locomotive.entity.BookedSeat;
 import com.loco.v1.wise.locomotive.entity.Trains.Train;
 import com.loco.v1.wise.locomotive.entity.Trains.TrainBogie;
 import com.loco.v1.wise.locomotive.entity.Trains.TrainPassengersInfo;
-import com.loco.v1.wise.locomotive.exceptions.AccountBalanceException;
-import com.loco.v1.wise.locomotive.exceptions.TrainServiceException;
-import com.loco.v1.wise.locomotive.exceptions.SeatAlreadyBookedException;
-import com.loco.v1.wise.locomotive.exceptions.ValidationFailedException;
+import com.loco.v1.wise.locomotive.exceptions.*;
 import com.loco.v1.wise.locomotive.payloads.MyPayloads;
 import com.loco.v1.wise.locomotive.repository.TrainBogieRepositories;
 import com.loco.v1.wise.locomotive.repository.TrainBookedRepositories;
@@ -180,7 +178,7 @@ public class TrainServicesImpl implements TrainServices {
                 try {
                     UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
 
-                    // TODO; Need to update the mainBalance + priceOfTicket Below
+                    // TODO; Need to update the mainBalance + ( priceOfTicket - 25% )
                     updateAccountBalance.setAccountNumber(accountNumber);
                     updateAccountBalance.setAccountBalance(seat.getPriceOfTicket());
                     restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
@@ -204,7 +202,6 @@ public class TrainServicesImpl implements TrainServices {
 
         return trainBoolCancellationResponse;
     }
-
 
     @Override
     public TrainResponse addTrain(Train train) {
@@ -352,11 +349,51 @@ public class TrainServicesImpl implements TrainServices {
         throw new TrainServiceException("No train is found in your given source");
     }
 
-    //
-//    1. wash
-//    2. upper tk water 3 hr
-//    3. alu boil
+    @Override
+    public PnrStatusResponse getPassengerInfoByPNRNumber(String PNRNum) {
 
+        Optional<TrainPassengersInfo> trainPassengersInfo = trainPassengerInfoRepositories.findBYPnrNumber(PNRNum);
+        if (trainPassengersInfo.isPresent()) {
+            TrainPassengersInfo all = trainPassengersInfo.get();
+
+            Optional<Train> train = trainRepositories.findByTrainNumber(all.getTrainNumber());
+            if (train.isPresent()) {
+                Train trainInfo = train.get();
+
+                Optional<BookedSeat> optionalBookedSeat = trainBookedRepositories.findById(all.getSeatNumber());
+                int countPassenger = trainBookedRepositories.countBySeatNumber(all.getSeatNumber());
+
+                // TODO ; Need to fix the senerio of finding passengeerCount
+
+                if (optionalBookedSeat.isPresent()) {
+                    BookedSeat seat = optionalBookedSeat.get();
+
+                    return PnrStatusResponse.builder()
+                            .departureStation(trainInfo.getDestinationStation())
+                            .arrivalStation(trainInfo.getSourceStation())
+                            .pnrNumber(PNRNum)
+                            .seatNumber(all.getSeatNumber())
+                            .passengerName(all.getFirstName() + " " + all.getLastName())
+                            .pnrStatus("ACTIVE T891")
+                            .trainNumber(all.getTrainNumber())
+                            .trainName(all.getTrainName())
+                            .ticketNumber(all.getTicketNumber())
+                            .message("PNR STATUS IS COMPLECTED")
+                            .currentTime(LocalDateTime.now())
+                            .departureDate(LocalDateTime.now())
+                            .arrivalDate(LocalDateTime.now())
+                            .totalPassengers(countPassenger)
+                            .fare(seat.getPriceOfTicket())
+                            .confirmed(true)
+                            .build();
+
+                }
+                throw new PnrNotFoundException("Seat info is not available");
+            }
+            throw new PnrNotFoundException("Train info is not present");
+        }
+        throw new PnrNotFoundException("Invalid PNR Number");
+    }
 
 }
 

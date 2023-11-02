@@ -1,9 +1,6 @@
 package com.loco.v1.wise.locomotive.exceptions.handlers;
 
-import com.loco.v1.wise.locomotive.exceptions.AccountBalanceException;
-import com.loco.v1.wise.locomotive.exceptions.PassengerAlreadyBookedException;
-import com.loco.v1.wise.locomotive.exceptions.SeatAlreadyBookedException;
-import com.loco.v1.wise.locomotive.exceptions.TrainServiceException;
+import com.loco.v1.wise.locomotive.exceptions.*;
 import com.loco.v1.wise.locomotive.payloads.ErrorMessages;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +26,13 @@ public class GlobalExceptionHandlers {
 
     @ExceptionHandler(SeatAlreadyBookedException.class)
     ResponseEntity<ErrorMessages> seatAlreadyBooked(SeatAlreadyBookedException ex){
+        ErrorMessages errorMessages = new ErrorMessages();
+        errorMessages.setMessage(ex.getMessage());
+        return new ResponseEntity<>(errorMessages , HttpStatus.OK);
+    }
+
+    @ExceptionHandler(PnrNotFoundException.class)
+    ResponseEntity<ErrorMessages> pnrNumberNotFound(PnrNotFoundException ex){
         ErrorMessages errorMessages = new ErrorMessages();
         errorMessages.setMessage(ex.getMessage());
         return new ResponseEntity<>(errorMessages , HttpStatus.OK);

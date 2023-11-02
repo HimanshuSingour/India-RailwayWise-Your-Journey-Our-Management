@@ -1,5 +1,6 @@
 package com.loco.v1.wise.locomotive.services;
 
+import com.loco.v1.wise.locomotive.dtos.PnrStatus.PnrStatusResponse;
 import com.loco.v1.wise.locomotive.dtos.TrainBookCancellation;
 import com.loco.v1.wise.locomotive.dtos.TrainBoolCancellationResponse;
 import com.loco.v1.wise.locomotive.dtos.TrainPassangerInfo.TrainPassengerInfoRequest;
@@ -33,6 +34,8 @@ public interface TrainServices {
     TrainPassengersInfo bookATrain(TrainPassengerInfoRequest trainPassengerInfoRequest);
 
     TrainBoolCancellationResponse cancelBookingTrain(String seatNumber , String trainNumber, String accountNumber);
+
+    PnrStatusResponse getPassengerInfoByPNRNumber(String PNRNum);
 
     // TODO; Need to implements
 //    TrainResponse getAvailableTrains(TrainRequest trainRequest);
