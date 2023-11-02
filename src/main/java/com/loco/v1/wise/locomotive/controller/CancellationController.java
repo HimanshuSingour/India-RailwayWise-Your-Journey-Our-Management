@@ -19,10 +19,10 @@ public class CancellationController {
     @Autowired
     private TrainServices trainServices;
 
-    @GetMapping("/cancel/{seatNumber}/{trainNumber}")
-    public ResponseEntity<TrainBoolCancellationResponse> bookATrain(@PathVariable String seatNumber , @PathVariable String trainNumber) {
+    @GetMapping("/cancel/{seatNumber}/{trainNumber}/{accountNumber}")
+    public ResponseEntity<TrainBoolCancellationResponse> bookATrain(@PathVariable String seatNumber , @PathVariable String trainNumber , @PathVariable String accountNumber) {
         log.info("Received a request to get train information by source and destination: Source={} , d={}", seatNumber , trainNumber);
-        TrainBoolCancellationResponse trainResponse = trainServices.cancelBookingTrain(seatNumber , trainNumber);
+        TrainBoolCancellationResponse trainResponse = trainServices.cancelBookingTrain(seatNumber , trainNumber , accountNumber);
         log.info("Train information retrieved successfully: {}", trainResponse);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(trainResponse);
     }

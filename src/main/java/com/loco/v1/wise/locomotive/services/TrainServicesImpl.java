@@ -1,6 +1,5 @@
 package com.loco.v1.wise.locomotive.services;
 
-import com.loco.v1.wise.locomotive.dtos.TrainBookCancellation;
 import com.loco.v1.wise.locomotive.dtos.TrainBoolCancellationResponse;
 import com.loco.v1.wise.locomotive.dtos.TrainPassangerInfo.TrainPassengerInfoRequest;
 import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieRequest;
@@ -26,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -122,7 +122,6 @@ public class TrainServicesImpl implements TrainServices {
         AccountInformation accountInformation = response.getBody();
 
         if (accountInformation != null) {
-            needAccountInfo(accountInformation);
             UpdateAccountBalance updateAccountBalance = getUpdateAccountBalance(trainPassengerInfoRequest, accountInformation);
             restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
         }
@@ -159,42 +158,40 @@ public class TrainServicesImpl implements TrainServices {
         return updateAccountBalance;
     }
 
-    private void refundAmountToAccount(double amountToRefund, String accountNumber) {
-        UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
-        updateAccountBalance.setAccountBalance(amountToRefund);
-        updateAccountBalance.setAccountNumber(accountNumber);
-        restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
-    }
 
-    @Override
-    @Transactional
-    public TrainBoolCancellationResponse cancelBookingTrain(String seatNumber, String trainNumber) {
+    public TrainBoolCancellationResponse cancelBookingTrain(String seatNumber, String trainNumber, String accountNumber) {
 
-        Optional<TrainPassengersInfo> trainPassengersInfo = trainPassengerInfoRepositories.findById(seatNumber);
         TrainBoolCancellationResponse trainBoolCancellationResponse = new TrainBoolCancellationResponse();
-        trainBoolCancellationResponse.setMessage(SUCCESS_CANCELLATION);
-        trainBoolCancellationResponse.setReFund(REFUND_MONEY);
+        Optional<TrainPassengersInfo> optionalPassengersInfo = trainPassengerInfoRepositories.findBySeatNumber(seatNumber);
 
-        if (trainPassengersInfo.isPresent()) {
+        if (optionalPassengersInfo.isPresent()) {
+            TrainPassengersInfo passengersInfo = optionalPassengersInfo.get();
+            Optional<BookedSeat> optionalBookedSeat = trainBookedRepositories.findById(seatNumber);
 
-            TrainPassengersInfo passengersInfo = trainPassengersInfo.get();
-            trainPassengerInfoRepositories.delete(passengersInfo);
+            if (optionalBookedSeat.isPresent()) {
+                BookedSeat seat = optionalBookedSeat.get();
 
-            Optional<BookedSeat> bookedSeat = trainBookedRepositories.findById(seatNumber);
-            if (bookedSeat.isPresent()) {
-                BookedSeat seat = bookedSeat.get();
+                try {
+                    UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
+                    updateAccountBalance.setAccountNumber(accountNumber);
+                    updateAccountBalance.setAccountBalance(seat.getPriceOfTicket());
+                    restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
 
-                // RE_FUNDING
-                UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
-                updateAccountBalance.setAccountBalance(seat.getPriceOfTicket());
-                updateAccountBalance.setAccountNumber(updateAccountBalance.getAccountNumber());
+                    trainBoolCancellationResponse.setMessage("Booking successfully canceled.");
+                    trainBoolCancellationResponse.setReFund(String.valueOf(seat.getPriceOfTicket()));
 
-                refundAmountToAccount(seat.getPriceOfTicket(), passengersInfo.getAccountNumber());
+                    trainBookedRepositories.delete(seat);
+                    trainPassengerInfoRepositories.delete(passengersInfo);
 
-                trainBookedRepositories.delete(seat);
+                } catch (RestClientException e) {
+                    trainBoolCancellationResponse.setMessage("Failed to update account balance.");
+                }
+            } else {
+
+                trainBoolCancellationResponse.setMessage("Seat is not booked.");
             }
-
-            throw new TrainServiceException("Seat Is Already Cancelled or not booked by u.");
+        } else {
+            trainBoolCancellationResponse.setMessage("Passenger info not found.");
         }
 
         return trainBoolCancellationResponse;

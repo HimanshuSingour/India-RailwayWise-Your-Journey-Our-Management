@@ -32,7 +32,7 @@ public interface TrainServices {
 
     TrainPassengersInfo bookATrain(TrainPassengerInfoRequest trainPassengerInfoRequest);
 
-    TrainBoolCancellationResponse cancelBookingTrain(String seatNumber , String trainNumber);
+    TrainBoolCancellationResponse cancelBookingTrain(String seatNumber , String trainNumber, String accountNumber);
 
     // TODO; Need to implements
 //    TrainResponse getAvailableTrains(TrainRequest trainRequest);
