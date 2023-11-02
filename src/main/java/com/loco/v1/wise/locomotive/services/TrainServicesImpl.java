@@ -23,10 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Stream;
 
 import static com.loco.v1.wise.locomotive.config.ExternalServiceUrls.URL_FOR_ACCOUNT_SERVICE;
 import static com.loco.v1.wise.locomotive.config.ExternalServiceUrls.URL_FOR_ACCOUNT_UPDATE_SERVICE;
@@ -51,14 +49,7 @@ public class TrainServicesImpl implements TrainServices {
 
     public boolean validationChecks(TrainPassengerInfoRequest trainPassengerInfoRequest) {
 
-        String[] checkFields = {
-                trainPassengerInfoRequest.getPassengerId(), trainPassengerInfoRequest.getTrainId(), trainPassengerInfoRequest.getFirstName(),
-                trainPassengerInfoRequest.getLastName(), trainPassengerInfoRequest.getAge() + "", trainPassengerInfoRequest.getGender(),
-                trainPassengerInfoRequest.getAddress(), trainPassengerInfoRequest.getPhone(), trainPassengerInfoRequest.getEmail(),
-                trainPassengerInfoRequest.getNationality(), trainPassengerInfoRequest.getTrainName(), trainPassengerInfoRequest.getSeatNumber(),
-                trainPassengerInfoRequest.getAccountNumber(), trainPassengerInfoRequest.getIfscCode(),
-                trainPassengerInfoRequest.getPassword()
-        };
+        String[] checkFields = {trainPassengerInfoRequest.getPassengerId(), trainPassengerInfoRequest.getTrainId(), trainPassengerInfoRequest.getFirstName(), trainPassengerInfoRequest.getLastName(), trainPassengerInfoRequest.getAge() + "", trainPassengerInfoRequest.getGender(), trainPassengerInfoRequest.getAddress(), trainPassengerInfoRequest.getPhone(), trainPassengerInfoRequest.getEmail(), trainPassengerInfoRequest.getNationality(), trainPassengerInfoRequest.getTrainName(), trainPassengerInfoRequest.getSeatNumber(), trainPassengerInfoRequest.getAccountNumber(), trainPassengerInfoRequest.getIfscCode(), trainPassengerInfoRequest.getPassword()};
 
         for (int i = 0; i < checkFields.length; i++) {
             if (checkFields[i] == null || checkFields[i].isEmpty()) {
@@ -69,9 +60,7 @@ public class TrainServicesImpl implements TrainServices {
     }
 
     private String getFieldName(int index) {
-        String[] fieldNames = {
-                "Passenger ID", "Train ID", "First Name", "Last Name", "Age", "Gender", "Address", "Phone", "Email", "Nationality", "Train Name", "Seat Number", "Account Number", "IFSC Code", "Password"
-        };
+        String[] fieldNames = {"Passenger ID", "Train ID", "First Name", "Last Name", "Age", "Gender", "Address", "Phone", "Email", "Nationality", "Train Name", "Seat Number", "Account Number", "IFSC Code", "Password"};
         return fieldNames[index];
     }
 
@@ -83,59 +72,42 @@ public class TrainServicesImpl implements TrainServices {
 
             Optional<Train> train = trainRepositories.findById(trainPassengerInfoRequest.getTrainId());
             if (train.isPresent()) {
-
                 Train gettingTrainInfo = train.get();
                 Optional<TrainPassengersInfo> existingSeat = trainPassengerInfoRepositories.findBySeatNumber(trainPassengerInfoRequest.getSeatNumber());
                 Optional<TrainPassengersInfo> trainPassengersInfo = trainPassengerInfoRepositories.findById(trainPassengerInfoRequest.getPassengerId());
 
+                long SeatCount = trainPassengerInfoRepositories.countByTrainId(trainPassengerInfoRequest.getTrainId());
+                int maxSeats = 250;
+                int availableSeats = maxSeats - (int) SeatCount;
+
                 /* If already booked a seat by another passenger, that you are booking */
                 if (existingSeat.isPresent()) {
-                    if (Objects.equals(existingSeat.get().getPassengerId(), trainPassengerInfoRequest.getPassengerId()))
+                    if (Objects.equals(existingSeat.get().getPassengerId(), trainPassengerInfoRequest.getPassengerId())) {
                         throw new SeatAlreadyBookedException("Seat " + trainPassengersInfo.get().getSeatNumber() + " has already been booked by you. You will be notified on your mobile number soon.");
-                    else
+                    } else {
                         throw new SeatAlreadyBookedException("Seat " + trainPassengerInfoRequest.getSeatNumber() + " has already been booked by another passenger. Please choose a different seat.");
-
+                    }
                 }
 
-                if (trainPassengersInfo.isPresent()) {
+                if (availableSeats > 0) {
+                    if (trainPassengersInfo.isPresent()) {
+                        return createProfile(trainPassengerInfoRequest, gettingTrainInfo, train.get());
+                    }
                     return createProfile(trainPassengerInfoRequest, gettingTrainInfo, train.get());
                 }
-                return createProfile(trainPassengerInfoRequest, gettingTrainInfo, train.get());
+                throw new TrainServiceException("All seats are reserved in this train");
             }
             throw new TrainServiceException("The detail you are entering is incorrect");
-
         }
-
-        throw new ValidationFailedException("Something went wrong");
+        throw new ValidationFailedException("Something went wrong...");
     }
 
     public TrainPassengersInfo createProfile(TrainPassengerInfoRequest trainPassengerInfoRequest, Train gettingTrainInfo, Train train) {
-        TrainPassengersInfo trainPassengersCreate = TrainPassengersInfo.builder()
-                .passengerId(trainPassengerInfoRequest.getPassengerId())
-                .trainId(gettingTrainInfo.getTrainId())
-                .trainName(trainPassengerInfoRequest.getTrainName())
-                .pnrNumber(MyPayloads.forPnrNumberGenerator())
-                .ticketNumber(MyPayloads.generateTicketNumber())
-                .seatNumber(trainPassengerInfoRequest.getSeatNumber())
-                .trainNumber(gettingTrainInfo.getTrainNumber())
-                .firstName(trainPassengerInfoRequest.getFirstName())
-                .lastName(trainPassengerInfoRequest.getLastName())
-                .age(trainPassengerInfoRequest.getAge())
-                .address(trainPassengerInfoRequest.getAddress())
-                .email(trainPassengerInfoRequest.getEmail())
-                .phone(trainPassengerInfoRequest.getPhone())
-                .gender(trainPassengerInfoRequest.getGender())
-                .trainPassengerInfo(train)
-                .passportNumber(trainPassengerInfoRequest.getPassportNumber())
-                .nationality(trainPassengerInfoRequest.getNationality())
-                .messageStatus(TICKET_BOOKED_SUCCESSFULLY)
-                .build();
+        TrainPassengersInfo trainPassengersCreate = TrainPassengersInfo.builder().passengerId(trainPassengerInfoRequest.getPassengerId()).trainId(gettingTrainInfo.getTrainId()).trainName(trainPassengerInfoRequest.getTrainName()).pnrNumber(MyPayloads.forPnrNumberGenerator()).ticketNumber(MyPayloads.generateTicketNumber()).seatNumber(trainPassengerInfoRequest.getSeatNumber()).trainNumber(gettingTrainInfo.getTrainNumber()).firstName(trainPassengerInfoRequest.getFirstName()).lastName(trainPassengerInfoRequest.getLastName()).age(trainPassengerInfoRequest.getAge()).address(trainPassengerInfoRequest.getAddress()).email(trainPassengerInfoRequest.getEmail()).phone(trainPassengerInfoRequest.getPhone()).gender(trainPassengerInfoRequest.getGender()).trainPassengerInfo(train).passportNumber(trainPassengerInfoRequest.getPassportNumber()).nationality(trainPassengerInfoRequest.getNationality()).messageStatus(TICKET_BOOKED_SUCCESSFULLY).build();
+
 
         trainPassengerInfoRepositories.save(trainPassengersCreate);
-
-        ResponseEntity<AccountInformation> response = restTemplate.getForEntity(
-                URL_FOR_ACCOUNT_SERVICE + trainPassengerInfoRequest.getAccountNumber() + "/" + trainPassengerInfoRequest.getIfscCode() + "/" + trainPassengerInfoRequest.getPassword(),
-                AccountInformation.class);
+        ResponseEntity<AccountInformation> response = restTemplate.getForEntity(URL_FOR_ACCOUNT_SERVICE + trainPassengerInfoRequest.getAccountNumber() + "/" + trainPassengerInfoRequest.getIfscCode() + "/" + trainPassengerInfoRequest.getPassword(), AccountInformation.class);
         AccountInformation accountInformation = response.getBody();
 
         if (accountInformation != null) {
@@ -168,20 +140,7 @@ public class TrainServicesImpl implements TrainServices {
             throw new TrainServiceException("Invalid Input: Train name contains numbers.");
 
         }
-        Train newTrain = Train.builder()
-                .trainId(autoTrainId)
-                .trainNumber(MyPayloads.forTrainNumber())
-                .trainInit(MyPayloads.forTrainInIt())
-                .trainName(train.getTrainName())
-                .sourceStation(train.getSourceStation())
-                .destinationStation(train.getDestinationStation())
-                .ticketPrice(train.getTicketPrice())
-                .departureTime(train.getDepartureTime())
-                .arrivalTime(train.getArrivalTime())
-                .maxSpeed(train.getMaxSpeed())
-                .trainStatus(train.getTrainStatus())
-                .averageSpeed(train.getAverageSpeed())
-                .trainAddTime(localDateTime)
+        Train newTrain = Train.builder().trainId(autoTrainId).trainNumber(MyPayloads.forTrainNumber()).trainInit(MyPayloads.forTrainInIt()).trainName(train.getTrainName()).sourceStation(train.getSourceStation()).destinationStation(train.getDestinationStation()).ticketPrice(train.getTicketPrice()).departureTime(train.getDepartureTime()).arrivalTime(train.getArrivalTime()).maxSpeed(train.getMaxSpeed()).trainStatus(train.getTrainStatus()).averageSpeed(train.getAverageSpeed()).trainAddTime(localDateTime)
                 // Passenger info and bogie are null Currently because we need to build a train engine only
                 .build();
 
@@ -229,23 +188,7 @@ public class TrainServicesImpl implements TrainServices {
 
                 } else {
 
-                    TrainBogie newTrain = TrainBogie.builder()
-                            .bogieId(bogies.getBogieId())
-                            .trainId(bogies.getTrainId())
-                            .bogieNumber(bogies.getBogieNumber())
-                            .bogieName(MyPayloads.generateBogieName())
-                            .bogieType(bogies.getBogieType())
-                            .bogieWeight(bogies.getBogieWeight())
-                            .maxPassengerCapacity(bogies.getMaxPassengerCapacity())
-                            .manufacturer(bogies.getManufacturer())
-                            .numberOfWheels(bogies.getNumberOfWheels())
-                            .isAirConditioned(bogies.isAirConditioned())
-                            .bogieLength(bogies.getBogieLength())
-                            .color(bogies.getColor())
-                            .isElectric(bogies.isElectric())
-                            .numberOfDoors(bogies.getNumberOfDoors())
-                            .trainBogie(train.get())
-                            .build();
+                    TrainBogie newTrain = TrainBogie.builder().bogieId(bogies.getBogieId()).trainId(bogies.getTrainId()).bogieNumber(bogies.getBogieNumber()).bogieName(MyPayloads.generateBogieName()).bogieType(bogies.getBogieType()).bogieWeight(bogies.getBogieWeight()).maxPassengerCapacity(bogies.getMaxPassengerCapacity()).manufacturer(bogies.getManufacturer()).numberOfWheels(bogies.getNumberOfWheels()).isAirConditioned(bogies.isAirConditioned()).bogieLength(bogies.getBogieLength()).color(bogies.getColor()).isElectric(bogies.isElectric()).numberOfDoors(bogies.getNumberOfDoors()).trainBogie(train.get()).build();
 
                     trainBogieRepositories.save(newTrain);
                     log.info("Bogie is successfully connected to train");
@@ -271,8 +214,7 @@ public class TrainServicesImpl implements TrainServices {
 
         Optional<Train> train = trainRepositories.findByTrainName(trainName);
 
-        if (trainName.isEmpty() || trainName.isBlank())
-            throw new TrainServiceException("Invalid Input !!");
+        if (trainName.isEmpty() || trainName.isBlank()) throw new TrainServiceException("Invalid Input !!");
 
         if (train.isPresent()) return train.get();
 
@@ -284,8 +226,7 @@ public class TrainServicesImpl implements TrainServices {
 
         Optional<Train> train = trainRepositories.findByTrainNumber(trainNumber);
 
-        if (trainNumber.isEmpty() || trainNumber.isBlank())
-            throw new TrainServiceException("Blank Is not allowed !!");
+        if (trainNumber.isEmpty() || trainNumber.isBlank()) throw new TrainServiceException("Blank Is not allowed !!");
 
         if (train.isPresent()) return train.get();
 

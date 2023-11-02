@@ -13,4 +13,6 @@ public interface TrainPassengerInfoRepositories extends JpaRepository<TrainPasse
 
 
     Optional<TrainPassengersInfo> findBySeatNumber(String seatNumber);
+
+    long countByTrainId(String trainId);
 }
