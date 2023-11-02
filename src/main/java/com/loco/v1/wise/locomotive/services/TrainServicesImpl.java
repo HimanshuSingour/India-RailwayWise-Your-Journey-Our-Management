@@ -115,6 +115,19 @@ public class TrainServicesImpl implements TrainServices {
         throw new ValidationFailedException("Something went wrong...");
     }
 
+    public void updateAccountBalanceIfNeeded(TrainPassengerInfoRequest trainPassengerInfoRequest) {
+        String accountServiceUrl = URL_FOR_ACCOUNT_SERVICE + trainPassengerInfoRequest.getAccountNumber() + "/" + trainPassengerInfoRequest.getIfscCode() +
+                "/" + trainPassengerInfoRequest.getPassword();
+        ResponseEntity<AccountInformation> response = restTemplate.getForEntity(accountServiceUrl, AccountInformation.class);
+        AccountInformation accountInformation = response.getBody();
+
+        if (accountInformation != null) {
+            needAccountInfo(accountInformation);
+            UpdateAccountBalance updateAccountBalance = getUpdateAccountBalance(trainPassengerInfoRequest, accountInformation);
+            restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
+        }
+    }
+
     public TrainPassengersInfo createProfile(TrainPassengerInfoRequest trainPassengerInfoRequest, Train gettingTrainInfo, Train train) {
 
         TrainPassengersInfo trainPassengersCreate = TrainPassengersInfo.builder().passengerId(trainPassengerInfoRequest.getPassengerId()).
@@ -125,22 +138,14 @@ public class TrainServicesImpl implements TrainServices {
         seat.setTrainNumber(trainPassengerInfoRequest.getTrainNumber());
         seat.setPriceOfTicket(trainPassengerInfoRequest.getTicketPrice());
         seat.setMessage(RESERVED_SEAT);
-
         trainBookedRepositories.save(seat);
-        ResponseEntity<AccountInformation> response = restTemplate.getForEntity(URL_FOR_ACCOUNT_SERVICE + trainPassengerInfoRequest.getAccountNumber() + "/" + trainPassengerInfoRequest.getIfscCode() + "/" + trainPassengerInfoRequest.getPassword(), AccountInformation.class);
-        AccountInformation accountInformation = response.getBody();
 
-        if (accountInformation != null) {
-            UpdateAccountBalance updateAccountBalance = getUpdateAccountBalance(trainPassengerInfoRequest, accountInformation);
-            restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
-        }
+        updateAccountBalanceIfNeeded(trainPassengerInfoRequest);
         return trainPassengersCreate;
     }
 
     private static UpdateAccountBalance getUpdateAccountBalance(TrainPassengerInfoRequest trainPassengerInfoRequest, AccountInformation accountInformation) {
         double priceOfTicket = trainPassengerInfoRequest.getTicketPrice();
-
-        // if person having insufficient fund and trying to book a seat
         if (priceOfTicket > accountInformation.getAccountBalance()) {
             throw new AccountBalanceException("Ticket is not booked because you have insufficient balance in your account.");
         }
@@ -154,19 +159,28 @@ public class TrainServicesImpl implements TrainServices {
         return updateAccountBalance;
     }
 
+    private void refundAmountToAccount(double amountToRefund, String accountNumber) {
+        UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
+        updateAccountBalance.setAccountBalance(amountToRefund);
+        updateAccountBalance.setAccountNumber(accountNumber);
+        restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
+    }
+
     @Override
     @Transactional
-    public TrainBoolCancellationResponse cancelBookingTrain(TrainBookCancellation TrainBookCancellation) {
+    public TrainBoolCancellationResponse cancelBookingTrain(String seatNumber, String trainNumber) {
 
-        Optional<TrainPassengersInfo> trainPassengersInfo = trainPassengerInfoRepositories.findBySeatNumber(TrainBookCancellation.getSeatNumber());
+        Optional<TrainPassengersInfo> trainPassengersInfo = trainPassengerInfoRepositories.findById(seatNumber);
         TrainBoolCancellationResponse trainBoolCancellationResponse = new TrainBoolCancellationResponse();
+        trainBoolCancellationResponse.setMessage(SUCCESS_CANCELLATION);
+        trainBoolCancellationResponse.setReFund(REFUND_MONEY);
 
         if (trainPassengersInfo.isPresent()) {
 
             TrainPassengersInfo passengersInfo = trainPassengersInfo.get();
             trainPassengerInfoRepositories.delete(passengersInfo);
 
-            Optional<BookedSeat> bookedSeat = trainBookedRepositories.findById(TrainBookCancellation.getSeatNumber());
+            Optional<BookedSeat> bookedSeat = trainBookedRepositories.findById(seatNumber);
             if (bookedSeat.isPresent()) {
                 BookedSeat seat = bookedSeat.get();
 
@@ -174,10 +188,9 @@ public class TrainServicesImpl implements TrainServices {
                 UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
                 updateAccountBalance.setAccountBalance(seat.getPriceOfTicket());
                 updateAccountBalance.setAccountNumber(updateAccountBalance.getAccountNumber());
-                trainBoolCancellationResponse.setMessage(SUCCESS_CANCELLATION);
-                trainBoolCancellationResponse.setReFund(REFUND_MONEY);
 
-                restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
+                refundAmountToAccount(seat.getPriceOfTicket(), passengersInfo.getAccountNumber());
+
                 trainBookedRepositories.delete(seat);
             }
 
@@ -333,6 +346,11 @@ public class TrainServicesImpl implements TrainServices {
         }
         throw new TrainServiceException("No train is found in your given source");
     }
+
+    //
+//    1. wash
+//    2. upper tk water 3 hr
+//    3. alu boil
 
 
 }
