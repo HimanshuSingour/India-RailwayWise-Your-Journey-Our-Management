@@ -129,23 +129,27 @@ public class TrainServicesImpl implements TrainServices {
         AccountInformation accountInformation = response.getBody();
 
         if (accountInformation != null) {
-
-            double priceOfTicket = trainPassengerInfoRequest.getTicketPrice();
-
-            if(priceOfTicket > accountInformation.getAccountBalance()){
-                throw new AccountBalanceException("Insufficient Fund..");
-            }
-
-            double mainAccountBalance = accountInformation.getAccountBalance();
-            double main_balanceUpdate = mainAccountBalance - priceOfTicket;
-
-            UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
-            updateAccountBalance.setAccountNumber(accountInformation.getAccountNumber());
-            updateAccountBalance.setAccountBalance(main_balanceUpdate);
-
+            UpdateAccountBalance updateAccountBalance = getUpdateAccountBalance(trainPassengerInfoRequest, accountInformation);
             restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
         }
         return trainPassengersCreate;
+    }
+
+    private static UpdateAccountBalance getUpdateAccountBalance(TrainPassengerInfoRequest trainPassengerInfoRequest, AccountInformation accountInformation) {
+        double priceOfTicket = trainPassengerInfoRequest.getTicketPrice();
+
+        // if person having insufficient fund and trying to book seat
+        if(priceOfTicket > accountInformation.getAccountBalance()){
+            throw new AccountBalanceException("Insufficient Fund..");
+        }
+
+        double mainAccountBalance = accountInformation.getAccountBalance();
+        double main_balanceUpdate = mainAccountBalance - priceOfTicket;
+
+        UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
+        updateAccountBalance.setAccountNumber(accountInformation.getAccountNumber());
+        updateAccountBalance.setAccountBalance(main_balanceUpdate);
+        return updateAccountBalance;
     }
 
 
