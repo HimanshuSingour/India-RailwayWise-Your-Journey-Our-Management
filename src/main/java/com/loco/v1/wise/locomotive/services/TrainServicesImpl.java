@@ -161,34 +161,27 @@ public class TrainServicesImpl implements TrainServices {
         Optional<TrainPassengersInfo> trainPassengersInfo = trainPassengerInfoRepositories.findBySeatNumber(TrainBookCancellation.getSeatNumber());
         TrainBoolCancellationResponse trainBoolCancellationResponse = new TrainBoolCancellationResponse();
 
-        try {
+        if (trainPassengersInfo.isPresent()) {
 
-            if (trainPassengersInfo.isPresent()) {
+            TrainPassengersInfo passengersInfo = trainPassengersInfo.get();
+            trainPassengerInfoRepositories.delete(passengersInfo);
 
-                TrainPassengersInfo passengersInfo = trainPassengersInfo.get();
-                trainPassengerInfoRepositories.delete(passengersInfo);
+            Optional<BookedSeat> bookedSeat = trainBookedRepositories.findById(TrainBookCancellation.getSeatNumber());
+            if (bookedSeat.isPresent()) {
+                BookedSeat seat = bookedSeat.get();
 
-                Optional<BookedSeat> bookedSeat = trainBookedRepositories.findById(TrainBookCancellation.getSeatNumber());
-                if (bookedSeat.isPresent()) {
-                    BookedSeat seat = bookedSeat.get();
+                // RE_FUNDING
+                UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
+                updateAccountBalance.setAccountBalance(seat.getPriceOfTicket());
+                updateAccountBalance.setAccountNumber(updateAccountBalance.getAccountNumber());
+                trainBoolCancellationResponse.setMessage(SUCCESS_CANCELLATION);
+                trainBoolCancellationResponse.setReFund(REFUND_MONEY);
 
-                    // RE_FUNDING
-                    UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
-                    updateAccountBalance.setAccountBalance(seat.getPriceOfTicket());
-                    updateAccountBalance.setAccountNumber(updateAccountBalance.getAccountNumber());
-
-
-                    trainBoolCancellationResponse.setMessage(SUCCESS_CANCELLATION);
-                    trainBoolCancellationResponse.setReFund(REFUND_MONEY);
-
-                    restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
-                    trainBookedRepositories.delete(seat);
-                }
+                restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
+                trainBookedRepositories.delete(seat);
             }
 
-        } catch (TrainServiceException e) {
-            throw new TrainServiceException("The Detail You Have Entered is Incorrect or Train Is not available for the time");
-
+            throw new TrainServiceException("Seat Is Already Cancelled or not booked by u.");
         }
 
         return trainBoolCancellationResponse;
