@@ -19,6 +19,7 @@ public class BookedSeat {
     @Id
     private String SeatNumber;
     private String trainNumber;
+    private double priceOfTicket;
     private String message;
 
 }

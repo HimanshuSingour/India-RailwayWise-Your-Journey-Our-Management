@@ -1,5 +1,6 @@
 package com.loco.v1.wise.locomotive.services;
 
+import com.loco.v1.wise.locomotive.dtos.TrainBookCancellation;
 import com.loco.v1.wise.locomotive.dtos.TrainPassangerInfo.TrainPassengerInfoRequest;
 import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieRequest;
 import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieResponse;
@@ -46,7 +47,6 @@ public class TrainServicesImpl implements TrainServices {
     private TrainPassengerInfoRepositories trainPassengerInfoRepositories;
     @Autowired
     private TrainBogieRepositories trainBogieRepositories;
-
     @Autowired
     private TrainBookedRepositories trainBookedRepositories;
 
@@ -122,6 +122,7 @@ public class TrainServicesImpl implements TrainServices {
         BookedSeat seat = new BookedSeat();
         seat.setSeatNumber(trainPassengerInfoRequest.getSeatNumber());
         seat.setTrainNumber(trainPassengerInfoRequest.getTrainNumber());
+        seat.setPriceOfTicket(trainPassengerInfoRequest.getTicketPrice());
         seat.setMessage(RESERVED_SEAT);
 
         trainBookedRepositories.save(seat);
@@ -150,6 +151,18 @@ public class TrainServicesImpl implements TrainServices {
         updateAccountBalance.setAccountNumber(accountInformation.getAccountNumber());
         updateAccountBalance.setAccountBalance(main_balanceUpdate);
         return updateAccountBalance;
+    }
+
+    @Override
+    public String cancelBookingTrain(TrainBookCancellation TrainBookCancellation) {
+
+        Optional<BookedSeat> seat = trainBookedRepositories.findById(TrainBookCancellation.getSeatNumber());
+        if(seat.isPresent()){
+
+
+            // TODO: falling back everything,need to implement
+        }
+        return null;
     }
 
 
@@ -300,11 +313,7 @@ public class TrainServicesImpl implements TrainServices {
     }
 
 
-    @Override
-    public String cancelBookingTrain(TrainPassengerInfoRequest trainPassengerInfoRequest) {
 
-        return null;
-    }
 
 }
 
