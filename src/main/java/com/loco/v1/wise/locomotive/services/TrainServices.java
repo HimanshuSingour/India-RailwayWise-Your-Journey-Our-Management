@@ -1,6 +1,7 @@
 package com.loco.v1.wise.locomotive.services;
 
 import com.loco.v1.wise.locomotive.dtos.TrainBookCancellation;
+import com.loco.v1.wise.locomotive.dtos.TrainBoolCancellationResponse;
 import com.loco.v1.wise.locomotive.dtos.TrainPassangerInfo.TrainPassengerInfoRequest;
 import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieRequest;
 import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieResponse;
@@ -14,15 +15,24 @@ import java.util.List;
 public interface TrainServices {
 
     TrainResponse addTrain(Train train);
+
     List<TrainBogieResponse> addTrainBogies(List<TrainBogieRequest> trainBogies);
+
     Train getTrainInformationByTrainName(String trainName);
+
     Train getTrainInformationByTrainNumber(String trainNumber);
+
     List<Train> getAllTrainsBySourceAndDestination(String source, String destinations);
+
     List<Train> getAllTheTrains();
+
     List<Train> getAllTrainsByDestination(String Destination);
+
     List<Train> getAllTrainsBySource(String Source);
+
     TrainPassengersInfo bookATrain(TrainPassengerInfoRequest trainPassengerInfoRequest);
-    String cancelBookingTrain(TrainBookCancellation trainBookCancellation);
+
+    TrainBoolCancellationResponse cancelBookingTrain(TrainBookCancellation trainBookCancellation);
 
     // TODO; Need to implements
 //    TrainResponse getAvailableTrains(TrainRequest trainRequest);

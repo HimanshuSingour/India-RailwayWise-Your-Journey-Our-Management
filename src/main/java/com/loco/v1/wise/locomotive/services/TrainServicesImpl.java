@@ -1,6 +1,7 @@
 package com.loco.v1.wise.locomotive.services;
 
 import com.loco.v1.wise.locomotive.dtos.TrainBookCancellation;
+import com.loco.v1.wise.locomotive.dtos.TrainBoolCancellationResponse;
 import com.loco.v1.wise.locomotive.dtos.TrainPassangerInfo.TrainPassengerInfoRequest;
 import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieRequest;
 import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieResponse;
@@ -140,7 +141,7 @@ public class TrainServicesImpl implements TrainServices {
         double priceOfTicket = trainPassengerInfoRequest.getTicketPrice();
 
         // if person having insufficient fund and trying to book a seat
-        if(priceOfTicket > accountInformation.getAccountBalance()){
+        if (priceOfTicket > accountInformation.getAccountBalance()) {
             throw new AccountBalanceException("Ticket is not booked because you have insufficient balance in your account.");
         }
 
@@ -154,18 +155,43 @@ public class TrainServicesImpl implements TrainServices {
     }
 
     @Override
-    public String cancelBookingTrain(TrainBookCancellation TrainBookCancellation) {
+    @Transactional
+    public TrainBoolCancellationResponse cancelBookingTrain(TrainBookCancellation TrainBookCancellation) {
 
-        Optional<BookedSeat> seat = trainBookedRepositories.findById(TrainBookCancellation.getSeatNumber());
-        if(seat.isPresent()){
+        Optional<TrainPassengersInfo> trainPassengersInfo = trainPassengerInfoRepositories.findBySeatNumber(TrainBookCancellation.getSeatNumber());
+        TrainBoolCancellationResponse trainBoolCancellationResponse = new TrainBoolCancellationResponse();
+
+        try {
+
+            if (trainPassengersInfo.isPresent()) {
+
+                TrainPassengersInfo passengersInfo = trainPassengersInfo.get();
+                trainPassengerInfoRepositories.delete(passengersInfo);
+
+                Optional<BookedSeat> bookedSeat = trainBookedRepositories.findbySeatNumber(TrainBookCancellation.getSeatNumber());
+                if (bookedSeat.isPresent()) {
+                    BookedSeat seat = bookedSeat.get();
+
+                    // RE_FUNDING
+                    UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
+                    updateAccountBalance.setAccountBalance(seat.getPriceOfTicket());
+                    updateAccountBalance.setAccountNumber(updateAccountBalance.getAccountNumber());
 
 
-            /* TODO: falling back everything,need to implement
-            *   1. Refund Process
-            *   2. The Reserved Seat Is now UnReserved
-            *   3. remove that person information and the seat information that he reserved */
+                    trainBoolCancellationResponse.setMessage(SUCCESS_CANCELLATION);
+                    trainBoolCancellationResponse.setReFund(REFUND_MONEY);
+
+                    restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
+                    trainBookedRepositories.delete(seat);
+                }
+            }
+
+        } catch (TrainServiceException e) {
+            throw new TrainServiceException("The Detail You Have Entered is Incorrect or Train Is not available for the time");
+
         }
-        return null;
+
+        return trainBoolCancellationResponse;
     }
 
 
@@ -314,8 +340,6 @@ public class TrainServicesImpl implements TrainServices {
         }
         throw new TrainServiceException("No train is found in your given source");
     }
-
-
 
 
 }
