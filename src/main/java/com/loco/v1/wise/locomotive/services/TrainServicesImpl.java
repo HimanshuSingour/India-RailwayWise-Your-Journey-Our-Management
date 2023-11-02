@@ -140,7 +140,7 @@ public class TrainServicesImpl implements TrainServices {
 
         // if person having insufficient fund and trying to book seat
         if(priceOfTicket > accountInformation.getAccountBalance()){
-            throw new AccountBalanceException("Insufficient Fund..");
+            throw new AccountBalanceException("Ticket is not booked because you have insufficient balance in your account.");
         }
 
         double mainAccountBalance = accountInformation.getAccountBalance();
@@ -302,6 +302,7 @@ public class TrainServicesImpl implements TrainServices {
 
     @Override
     public String cancelBookingTrain(TrainPassengerInfoRequest trainPassengerInfoRequest) {
+
         return null;
     }
 
