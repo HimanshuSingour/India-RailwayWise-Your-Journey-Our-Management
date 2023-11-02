@@ -1,5 +1,6 @@
 package com.loco.v1.wise.locomotive.exceptions.handlers;
 
+import com.loco.v1.wise.locomotive.exceptions.AccountBalanceException;
 import com.loco.v1.wise.locomotive.exceptions.PassengerAlreadyBookedException;
 import com.loco.v1.wise.locomotive.exceptions.SeatAlreadyBookedException;
 import com.loco.v1.wise.locomotive.exceptions.TrainServiceException;
@@ -26,13 +27,19 @@ public class GlobalExceptionHandlers {
         return new ResponseEntity<>(errorMessages , HttpStatus.OK);
     }
 
-
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    ResponseEntity<ErrorMessages> alreadyBookedASeat(IllegalArgumentException ex){
+    @ExceptionHandler(SeatAlreadyBookedException.class)
+    ResponseEntity<ErrorMessages> seatAlreadyBooked(SeatAlreadyBookedException ex){
         ErrorMessages errorMessages = new ErrorMessages();
         errorMessages.setMessage(ex.getMessage());
         return new ResponseEntity<>(errorMessages , HttpStatus.OK);
     }
+
+    @ExceptionHandler(AccountBalanceException.class)
+    ResponseEntity<ErrorMessages> accountBalanceException(AccountBalanceException ex){
+        ErrorMessages errorMessages = new ErrorMessages();
+        errorMessages.setMessage(ex.getMessage());
+        return new ResponseEntity<>(errorMessages , HttpStatus.OK);
+    }
+
 
 }

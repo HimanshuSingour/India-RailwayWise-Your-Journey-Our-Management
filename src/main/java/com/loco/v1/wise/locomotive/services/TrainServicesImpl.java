@@ -6,14 +6,17 @@ import com.loco.v1.wise.locomotive.dtos.TrainRequests.TrainBogieResponse;
 import com.loco.v1.wise.locomotive.dtos.TrainResponse;
 import com.loco.v1.wise.locomotive.dtos.UpdateAccountBalance;
 import com.loco.v1.wise.locomotive.entity.AccountInformation;
+import com.loco.v1.wise.locomotive.entity.BookedSeat;
 import com.loco.v1.wise.locomotive.entity.Trains.Train;
 import com.loco.v1.wise.locomotive.entity.Trains.TrainBogie;
 import com.loco.v1.wise.locomotive.entity.Trains.TrainPassengersInfo;
+import com.loco.v1.wise.locomotive.exceptions.AccountBalanceException;
 import com.loco.v1.wise.locomotive.exceptions.TrainServiceException;
 import com.loco.v1.wise.locomotive.exceptions.SeatAlreadyBookedException;
 import com.loco.v1.wise.locomotive.exceptions.ValidationFailedException;
 import com.loco.v1.wise.locomotive.payloads.MyPayloads;
 import com.loco.v1.wise.locomotive.repository.TrainBogieRepositories;
+import com.loco.v1.wise.locomotive.repository.TrainBookedRepositories;
 import com.loco.v1.wise.locomotive.repository.TrainPassengerInfoRepositories;
 import com.loco.v1.wise.locomotive.repository.TrainRepositories;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +47,9 @@ public class TrainServicesImpl implements TrainServices {
     @Autowired
     private TrainBogieRepositories trainBogieRepositories;
 
+    @Autowired
+    private TrainBookedRepositories trainBookedRepositories;
+
 
     private final LocalDateTime localDateTime = LocalDateTime.now();
 
@@ -51,10 +57,10 @@ public class TrainServicesImpl implements TrainServices {
 
         String[] checkFields =
                 {trainPassengerInfoRequest.getPassengerId(), trainPassengerInfoRequest.getTrainId(), trainPassengerInfoRequest.getFirstName(), trainPassengerInfoRequest.getLastName(), trainPassengerInfoRequest.getAge() + "",
-                trainPassengerInfoRequest.getGender(), trainPassengerInfoRequest.getAddress(),
-                trainPassengerInfoRequest.getPhone(), trainPassengerInfoRequest.getEmail(), trainPassengerInfoRequest.getNationality(),
+                        trainPassengerInfoRequest.getGender(), trainPassengerInfoRequest.getAddress(),
+                        trainPassengerInfoRequest.getPhone(), trainPassengerInfoRequest.getEmail(), trainPassengerInfoRequest.getNationality(),
                         trainPassengerInfoRequest.getTrainName(), trainPassengerInfoRequest.getSeatNumber(),
-                trainPassengerInfoRequest.getAccountNumber(), trainPassengerInfoRequest.getIfscCode(), trainPassengerInfoRequest.getPassword()};
+                        trainPassengerInfoRequest.getAccountNumber(), trainPassengerInfoRequest.getIfscCode(), trainPassengerInfoRequest.getPassword()};
 
         for (int i = 0; i < checkFields.length; i++) {
             if (checkFields[i] == null || checkFields[i].isEmpty()) {
@@ -82,6 +88,7 @@ public class TrainServicesImpl implements TrainServices {
                 Optional<TrainPassengersInfo> trainPassengersInfo = trainPassengerInfoRepositories.findById(trainPassengerInfoRequest.getPassengerId());
 
                 long SeatCount = trainPassengerInfoRepositories.countByTrainId(trainPassengerInfoRequest.getTrainId());
+
                 int maxSeats = 250;
                 int availableSeats = maxSeats - (int) SeatCount;
 
@@ -108,21 +115,33 @@ public class TrainServicesImpl implements TrainServices {
     }
 
     public TrainPassengersInfo createProfile(TrainPassengerInfoRequest trainPassengerInfoRequest, Train gettingTrainInfo, Train train) {
-        TrainPassengersInfo trainPassengersCreate = TrainPassengersInfo.builder().passengerId(trainPassengerInfoRequest.getPassengerId()).trainId(gettingTrainInfo.getTrainId()).trainName(trainPassengerInfoRequest.getTrainName()).pnrNumber(MyPayloads.forPnrNumberGenerator()).ticketNumber(MyPayloads.generateTicketNumber()).seatNumber(trainPassengerInfoRequest.getSeatNumber()).trainNumber(gettingTrainInfo.getTrainNumber()).firstName(trainPassengerInfoRequest.getFirstName()).lastName(trainPassengerInfoRequest.getLastName()).age(trainPassengerInfoRequest.getAge()).address(trainPassengerInfoRequest.getAddress()).email(trainPassengerInfoRequest.getEmail()).phone(trainPassengerInfoRequest.getPhone()).gender(trainPassengerInfoRequest.getGender()).trainPassengerInfo(train).passportNumber(trainPassengerInfoRequest.getPassportNumber()).nationality(trainPassengerInfoRequest.getNationality()).messageStatus(TICKET_BOOKED_SUCCESSFULLY).build();
 
-
+        TrainPassengersInfo trainPassengersCreate = TrainPassengersInfo.builder().passengerId(trainPassengerInfoRequest.getPassengerId()).
+                trainId(gettingTrainInfo.getTrainId()).trainName(trainPassengerInfoRequest.getTrainName()).pnrNumber(MyPayloads.forPnrNumberGenerator()).ticketNumber(MyPayloads.generateTicketNumber()).seatNumber(trainPassengerInfoRequest.getSeatNumber()).trainNumber(gettingTrainInfo.getTrainNumber()).firstName(trainPassengerInfoRequest.getFirstName()).lastName(trainPassengerInfoRequest.getLastName()).age(trainPassengerInfoRequest.getAge()).address(trainPassengerInfoRequest.getAddress()).email(trainPassengerInfoRequest.getEmail()).phone(trainPassengerInfoRequest.getPhone()).gender(trainPassengerInfoRequest.getGender()).trainPassengerInfo(train).passportNumber(trainPassengerInfoRequest.getPassportNumber()).nationality(trainPassengerInfoRequest.getNationality()).messageStatus(TICKET_BOOKED_SUCCESSFULLY).build();
         trainPassengerInfoRepositories.save(trainPassengersCreate);
+        BookedSeat seat = new BookedSeat();
+        seat.setSeatNumber(trainPassengerInfoRequest.getSeatNumber());
+        seat.setTrainNumber(trainPassengerInfoRequest.getTrainNumber());
+        seat.setMessage(RESERVED_SEAT);
+
+        trainBookedRepositories.save(seat);
         ResponseEntity<AccountInformation> response = restTemplate.getForEntity(URL_FOR_ACCOUNT_SERVICE + trainPassengerInfoRequest.getAccountNumber() + "/" + trainPassengerInfoRequest.getIfscCode() + "/" + trainPassengerInfoRequest.getPassword(), AccountInformation.class);
         AccountInformation accountInformation = response.getBody();
 
         if (accountInformation != null) {
-            double mainAccountBalance = accountInformation.getAccountBalance();
+
             double priceOfTicket = trainPassengerInfoRequest.getTicketPrice();
-            double main_ticket = mainAccountBalance - priceOfTicket;
+
+            if(priceOfTicket > accountInformation.getAccountBalance()){
+                throw new AccountBalanceException("Insufficient Fund..");
+            }
+
+            double mainAccountBalance = accountInformation.getAccountBalance();
+            double main_balanceUpdate = mainAccountBalance - priceOfTicket;
 
             UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
             updateAccountBalance.setAccountNumber(accountInformation.getAccountNumber());
-            updateAccountBalance.setAccountBalance(main_ticket);
+            updateAccountBalance.setAccountBalance(main_balanceUpdate);
 
             restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
         }

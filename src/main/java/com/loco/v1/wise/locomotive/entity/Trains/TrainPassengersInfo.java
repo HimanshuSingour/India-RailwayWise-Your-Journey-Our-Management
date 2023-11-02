@@ -1,6 +1,7 @@
 package com.loco.v1.wise.locomotive.entity.Trains;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.loco.v1.wise.locomotive.entity.BookedSeat;
 import jakarta.persistence.*;
 import lombok.*;
 
