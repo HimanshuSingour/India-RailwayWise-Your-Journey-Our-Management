@@ -168,7 +168,7 @@ public class TrainServicesImpl implements TrainServices {
                 TrainPassengersInfo passengersInfo = trainPassengersInfo.get();
                 trainPassengerInfoRepositories.delete(passengersInfo);
 
-                Optional<BookedSeat> bookedSeat = trainBookedRepositories.findbySeatNumber(TrainBookCancellation.getSeatNumber());
+                Optional<BookedSeat> bookedSeat = trainBookedRepositories.findById(TrainBookCancellation.getSeatNumber());
                 if (bookedSeat.isPresent()) {
                     BookedSeat seat = bookedSeat.get();
 

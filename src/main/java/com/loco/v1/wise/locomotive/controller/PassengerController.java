@@ -2,7 +2,6 @@ package com.loco.v1.wise.locomotive.controller;
 
 
 import com.loco.v1.wise.locomotive.dtos.TrainPassangerInfo.TrainPassengerInfoRequest;
-import com.loco.v1.wise.locomotive.entity.Trains.Train;
 import com.loco.v1.wise.locomotive.entity.Trains.TrainPassengersInfo;
 import com.loco.v1.wise.locomotive.services.TrainServices;
 import lombok.extern.slf4j.Slf4j;
@@ -11,12 +10,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/train/v7/passenger")
 @Slf4j
-public class PassangerController {
+public class PassengerController {
 
     @Autowired
     private TrainServices trainServices;
