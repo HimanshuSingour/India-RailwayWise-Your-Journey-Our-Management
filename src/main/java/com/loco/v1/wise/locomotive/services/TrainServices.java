@@ -40,10 +40,6 @@ public interface TrainServices {
     // TODO; Need to implements
 //    TrainResponse getAvailableTrains(TrainRequest trainRequest);
 //    TrainResponse getTrainStatus(TrainRequest trainRequest);
-//    TrainPassengersInfo getPassengerInfoByName(String passengerName);
-//    TrainPassengersInfo getPassengerInfoById(String passengerId);
-//    TrainResponse getStatusByPNRNumber(TrainRequest trainRequest);
-//    TrainPassengersInfo getPassengerInfoByPNRNumber(String PNRNum);
 
 
 }

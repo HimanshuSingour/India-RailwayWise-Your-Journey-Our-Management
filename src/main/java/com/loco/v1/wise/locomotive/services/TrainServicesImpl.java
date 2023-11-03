@@ -13,6 +13,7 @@ import com.loco.v1.wise.locomotive.entity.Trains.Train;
 import com.loco.v1.wise.locomotive.entity.Trains.TrainBogie;
 import com.loco.v1.wise.locomotive.entity.Trains.TrainPassengersInfo;
 import com.loco.v1.wise.locomotive.exceptions.*;
+import com.loco.v1.wise.locomotive.notifications.NotificationsUtility;
 import com.loco.v1.wise.locomotive.payloads.MyPayloads;
 import com.loco.v1.wise.locomotive.repository.TrainBogieRepositories;
 import com.loco.v1.wise.locomotive.repository.TrainBookedRepositories;
@@ -48,6 +49,8 @@ public class TrainServicesImpl implements TrainServices {
     private TrainBogieRepositories trainBogieRepositories;
     @Autowired
     private TrainBookedRepositories trainBookedRepositories;
+    @Autowired
+    private NotificationsUtility notificationsUtility;
 
 
     private final LocalDateTime localDateTime = LocalDateTime.now();
@@ -91,7 +94,6 @@ public class TrainServicesImpl implements TrainServices {
                 int maxSeats = 250;
                 int availableSeats = maxSeats - (int) SeatCount;
 
-                /* If already booked a seat by another passenger, that you are booking */
                 if (existingSeat.isPresent()) {
                     if (Objects.equals(existingSeat.get().getPassengerId(), trainPassengerInfoRequest.getPassengerId())) {
                         throw new SeatAlreadyBookedException("Seat " + trainPassengersInfo.get().getSeatNumber() + " has already been booked by you. You will be notified on your mobile number soon.");
@@ -122,6 +124,9 @@ public class TrainServicesImpl implements TrainServices {
         if (accountInformation != null) {
             UpdateAccountBalance updateAccountBalance = getUpdateAccountBalance(trainPassengerInfoRequest, accountInformation);
             restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
+            notificationsUtility.sendMoneyCreditedNotification(trainPassengerInfoRequest.getAccountNumber(),
+                    trainPassengerInfoRequest.getFirstName(),
+                    trainPassengerInfoRequest.getTicketPrice());
         }
     }
 
@@ -130,6 +135,10 @@ public class TrainServicesImpl implements TrainServices {
         TrainPassengersInfo trainPassengersCreate = TrainPassengersInfo.builder().passengerId(trainPassengerInfoRequest.getPassengerId()).
                 trainId(gettingTrainInfo.getTrainId()).trainName(trainPassengerInfoRequest.getTrainName()).pnrNumber(MyPayloads.forPnrNumberGenerator()).ticketNumber(MyPayloads.generateTicketNumber()).seatNumber(trainPassengerInfoRequest.getSeatNumber()).trainNumber(gettingTrainInfo.getTrainNumber()).firstName(trainPassengerInfoRequest.getFirstName()).lastName(trainPassengerInfoRequest.getLastName()).age(trainPassengerInfoRequest.getAge()).address(trainPassengerInfoRequest.getAddress()).email(trainPassengerInfoRequest.getEmail()).phone(trainPassengerInfoRequest.getPhone()).gender(trainPassengerInfoRequest.getGender()).trainPassengerInfo(train).passportNumber(trainPassengerInfoRequest.getPassportNumber()).nationality(trainPassengerInfoRequest.getNationality()).messageStatus(TICKET_BOOKED_SUCCESSFULLY).build();
         trainPassengerInfoRepositories.save(trainPassengersCreate);
+
+        notificationsUtility.sendConfirmationBookingMessage(trainPassengerInfoRequest.getTrainId(), trainPassengerInfoRequest.getTrainName(),
+                trainPassengerInfoRequest.getTrainNumber(), trainPassengerInfoRequest.getFirstName());
+
         BookedSeat seat = new BookedSeat();
         seat.setSeatNumber(trainPassengerInfoRequest.getSeatNumber());
         seat.setTrainNumber(trainPassengerInfoRequest.getTrainNumber());
