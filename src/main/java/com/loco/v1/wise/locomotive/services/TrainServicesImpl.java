@@ -363,7 +363,12 @@ public class TrainServicesImpl implements TrainServices {
                 Optional<BookedSeat> optionalBookedSeat = trainBookedRepositories.findById(all.getSeatNumber());
                 int countPassenger = trainBookedRepositories.countBySeatNumber(all.getSeatNumber());
 
-                // TODO ; Need to fix the senerio of finding passengeerCount
+                if (countPassenger > 0) {
+                    countPassenger++;
+
+                } else {
+                    throw new TrainServiceException("There is no passenger in this train.");
+                }
 
                 if (optionalBookedSeat.isPresent()) {
                     BookedSeat seat = optionalBookedSeat.get();
