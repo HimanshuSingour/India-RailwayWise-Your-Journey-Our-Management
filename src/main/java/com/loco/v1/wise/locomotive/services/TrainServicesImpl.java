@@ -354,20 +354,19 @@ public class TrainServicesImpl implements TrainServices {
 
         Optional<TrainPassengersInfo> trainPassengersInfo = trainPassengerInfoRepositories.findBYPnrNumber(PNRNum);
         if (trainPassengersInfo.isPresent()) {
-            TrainPassengersInfo all = trainPassengersInfo.get();
+            TrainPassengersInfo passengerInfo = trainPassengersInfo.get();
 
-            Optional<Train> train = trainRepositories.findByTrainNumber(all.getTrainNumber());
+            Optional<Train> train = trainRepositories.findByTrainNumber(passengerInfo.getTrainNumber());
             if (train.isPresent()) {
                 Train trainInfo = train.get();
 
-                Optional<BookedSeat> optionalBookedSeat = trainBookedRepositories.findById(all.getSeatNumber());
-                int countPassenger = trainBookedRepositories.countBySeatNumber(all.getSeatNumber());
+                Optional<BookedSeat> optionalBookedSeat = trainBookedRepositories.findById(passengerInfo.getSeatNumber());
+                int countPassenger = trainBookedRepositories.countBySeatNumber(passengerInfo.getSeatNumber());
 
                 if (countPassenger > 0) {
                     countPassenger++;
-
                 } else {
-                    throw new TrainServiceException("There is no passenger in this train.");
+                    throw new TrainServiceException("There are no passengers assigned to this seat.");
                 }
 
                 if (optionalBookedSeat.isPresent()) {
@@ -377,13 +376,13 @@ public class TrainServicesImpl implements TrainServices {
                             .departureStation(trainInfo.getDestinationStation())
                             .arrivalStation(trainInfo.getSourceStation())
                             .pnrNumber(PNRNum)
-                            .seatNumber(all.getSeatNumber())
-                            .passengerName(all.getFirstName() + " " + all.getLastName())
+                            .seatNumber(passengerInfo.getSeatNumber())
+                            .passengerName(passengerInfo.getFirstName() + " " + passengerInfo.getLastName())
                             .pnrStatus("ACTIVE T891")
-                            .trainNumber(all.getTrainNumber())
-                            .trainName(all.getTrainName())
-                            .ticketNumber(all.getTicketNumber())
-                            .message("PNR STATUS IS COMPLECTED")
+                            .trainNumber(passengerInfo.getTrainNumber())
+                            .trainName(passengerInfo.getTrainName())
+                            .ticketNumber(passengerInfo.getTicketNumber())
+                            .message("PNR status is complete")
                             .currentTime(LocalDateTime.now())
                             .departureDate(LocalDateTime.now())
                             .arrivalDate(LocalDateTime.now())
@@ -393,12 +392,13 @@ public class TrainServicesImpl implements TrainServices {
                             .build();
 
                 }
-                throw new PnrNotFoundException("Seat info is not available");
+                throw new PnrNotFoundException("Seat information is not available");
             }
-            throw new PnrNotFoundException("Train info is not present");
+            throw new PnrNotFoundException("Train information is not found");
         }
         throw new PnrNotFoundException("Invalid PNR Number");
     }
+
 
 }
 
