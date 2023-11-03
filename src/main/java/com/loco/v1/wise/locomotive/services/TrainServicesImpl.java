@@ -309,25 +309,17 @@ public class TrainServicesImpl implements TrainServices {
 
     @Override
     public Train getTrainInformationByTrainName(String trainName) {
-
         Optional<Train> train = trainRepositories.findByTrainName(trainName);
-
         if (trainName.isEmpty() || trainName.isBlank()) throw new TrainServiceException("Invalid Input !!");
-
         if (train.isPresent()) return train.get();
-
         throw new TrainServiceException("Invalid Number !! Train with this number is not exist.");
     }
 
     @Override
     public Train getTrainInformationByTrainNumber(String trainNumber) {
-
         Optional<Train> train = trainRepositories.findByTrainNumber(trainNumber);
-
         if (trainNumber.isEmpty() || trainNumber.isBlank()) throw new TrainServiceException("Blank Is not allowed !!");
-
         if (train.isPresent()) return train.get();
-
         throw new TrainServiceException("Invalid Number !! Train with this number is not exist.");
 
     }
@@ -336,12 +328,9 @@ public class TrainServicesImpl implements TrainServices {
     public List<Train> getAllTrainsBySourceAndDestination(String source, String destinations) {
 
         Optional<List<Train>> train = trainRepositories.findBySourceAndDestination(source, destinations);
-
         if (source.isEmpty() && source.isBlank() || source.isEmpty() || destinations.isBlank())
             throw new TrainServiceException("Blank Is not allowed !!");
-
         if (train.isPresent()) return train.get();
-
         throw new TrainServiceException("Invalid Number !! Train with this number is not exist.");
 
     }
@@ -386,7 +375,7 @@ public class TrainServicesImpl implements TrainServices {
                 if (countPassenger > 0) {
                     countPassenger++;
                 } else {
-                    throw new TrainServiceException("There are no passengers assigned to this seat.");
+                    throw new TrainServiceException("There are no passengers");
                 }
 
                 if (optionalBookedSeat.isPresent()) {
