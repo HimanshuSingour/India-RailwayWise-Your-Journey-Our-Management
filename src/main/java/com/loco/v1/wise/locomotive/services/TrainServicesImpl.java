@@ -236,8 +236,10 @@ public class TrainServicesImpl implements TrainServices {
             throw new TrainServiceException("Invalid Input: Train name contains numbers.");
 
         }
-        Train newTrain = Train.builder().trainId(autoTrainId).trainNumber(MyPayloads.forTrainNumber()).trainInit(MyPayloads.forTrainInIt()).trainName(train.getTrainName()).sourceStation(train.getSourceStation()).destinationStation(train.getDestinationStation()).ticketPrice(train.getTicketPrice()).departureTime(train.getDepartureTime()).arrivalTime(train.getArrivalTime()).maxSpeed(train.getMaxSpeed()).trainStatus(train.getTrainStatus()).averageSpeed(train.getAverageSpeed()).trainAddTime(localDateTime)
-                // Passenger info and bogie are null Currently because we need to build a train engine only
+        Train newTrain = Train.builder().trainId(autoTrainId).trainNumber(MyPayloads.forTrainNumber()).trainInit(MyPayloads.forTrainInIt()).trainName(train.getTrainName())
+                .sourceStation(train.getSourceStation()).destinationStation(train.getDestinationStation())
+                .ticketPrice(train.getTicketPrice()).departureTime(train.getDepartureTime()).arrivalTime(train.getArrivalTime()).maxSpeed(train.getMaxSpeed())
+                .trainStatus(train.getTrainStatus()).averageSpeed(train.getAverageSpeed()).trainAddTime(localDateTime)
                 .build();
 
         TrainResponse trainResponse = new TrainResponse();
