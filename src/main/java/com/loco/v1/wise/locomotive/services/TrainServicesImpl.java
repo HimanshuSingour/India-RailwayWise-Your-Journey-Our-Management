@@ -129,11 +129,29 @@ public class TrainServicesImpl implements TrainServices {
                     trainPassengerInfoRequest.getTicketPrice());
         }
     }
+    private static UpdateAccountBalance getUpdateAccountBalance(TrainPassengerInfoRequest trainPassengerInfoRequest, AccountInformation accountInformation) {
+        double priceOfTicket = trainPassengerInfoRequest.getTicketPrice();
+        if (priceOfTicket > accountInformation.getAccountBalance()) {
+            throw new AccountBalanceException("Ticket is not booked because you have insufficient balance in your account.");
+        }
+
+        double mainAccountBalance = accountInformation.getAccountBalance();
+        double main_balanceUpdate = mainAccountBalance - priceOfTicket;
+
+        UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
+        updateAccountBalance.setAccountNumber(accountInformation.getAccountNumber());
+        updateAccountBalance.setAccountBalance(main_balanceUpdate);
+        return updateAccountBalance;
+    }
 
     public TrainPassengersInfo createProfile(TrainPassengerInfoRequest trainPassengerInfoRequest, Train gettingTrainInfo, Train train) {
 
         TrainPassengersInfo trainPassengersCreate = TrainPassengersInfo.builder().passengerId(trainPassengerInfoRequest.getPassengerId()).
-                trainId(gettingTrainInfo.getTrainId()).trainName(trainPassengerInfoRequest.getTrainName()).pnrNumber(MyPayloads.forPnrNumberGenerator()).ticketNumber(MyPayloads.generateTicketNumber()).seatNumber(trainPassengerInfoRequest.getSeatNumber()).trainNumber(gettingTrainInfo.getTrainNumber()).firstName(trainPassengerInfoRequest.getFirstName()).lastName(trainPassengerInfoRequest.getLastName()).age(trainPassengerInfoRequest.getAge()).address(trainPassengerInfoRequest.getAddress()).email(trainPassengerInfoRequest.getEmail()).phone(trainPassengerInfoRequest.getPhone()).gender(trainPassengerInfoRequest.getGender()).trainPassengerInfo(train).passportNumber(trainPassengerInfoRequest.getPassportNumber()).nationality(trainPassengerInfoRequest.getNationality()).messageStatus(TICKET_BOOKED_SUCCESSFULLY).build();
+                trainId(gettingTrainInfo.getTrainId()).trainName(trainPassengerInfoRequest.getTrainName()).pnrNumber(MyPayloads.forPnrNumberGenerator()).ticketNumber(MyPayloads.generateTicketNumber()).seatNumber(trainPassengerInfoRequest.getSeatNumber()).
+                trainNumber(gettingTrainInfo.getTrainNumber()).firstName(trainPassengerInfoRequest.getFirstName()).
+                lastName(trainPassengerInfoRequest.getLastName()).age(trainPassengerInfoRequest.getAge()).address(trainPassengerInfoRequest.getAddress()).
+                email(trainPassengerInfoRequest.getEmail()).phone(trainPassengerInfoRequest.getPhone()).gender(trainPassengerInfoRequest.getGender()).trainPassengerInfo(train).passportNumber(trainPassengerInfoRequest.getPassportNumber()).nationality(trainPassengerInfoRequest.getNationality())
+                .messageStatus(TICKET_BOOKED_SUCCESSFULLY).build();
         trainPassengerInfoRepositories.save(trainPassengersCreate);
 
         notificationsUtility.sendConfirmationBookingMessage(trainPassengerInfoRequest.getTrainId(), trainPassengerInfoRequest.getTrainName(),
@@ -150,20 +168,6 @@ public class TrainServicesImpl implements TrainServices {
         return trainPassengersCreate;
     }
 
-    private static UpdateAccountBalance getUpdateAccountBalance(TrainPassengerInfoRequest trainPassengerInfoRequest, AccountInformation accountInformation) {
-        double priceOfTicket = trainPassengerInfoRequest.getTicketPrice();
-        if (priceOfTicket > accountInformation.getAccountBalance()) {
-            throw new AccountBalanceException("Ticket is not booked because you have insufficient balance in your account.");
-        }
-
-        double mainAccountBalance = accountInformation.getAccountBalance();
-        double main_balanceUpdate = mainAccountBalance - priceOfTicket;
-
-        UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
-        updateAccountBalance.setAccountNumber(accountInformation.getAccountNumber());
-        updateAccountBalance.setAccountBalance(main_balanceUpdate);
-        return updateAccountBalance;
-    }
 
     @Override
     @Transactional
