@@ -176,7 +176,6 @@ public class TrainServicesImpl implements TrainServices {
         // TODO:
         //  Remove the accountNumber from the above parameter
         //  and get from the actual account information and accountNumber from there
-        // TODO: Not as a parameter , but as an retrievable
 
         TrainBoolCancellationResponse trainBoolCancellationResponse = new TrainBoolCancellationResponse();
         Optional<TrainPassengersInfo> optionalPassengersInfo = trainPassengerInfoRepositories.findBySeatNumber(seatNumber);
@@ -191,13 +190,19 @@ public class TrainServicesImpl implements TrainServices {
                 try {
                     UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
 
-                    // TODO; Need to update the mainBalance + ( priceOfTicket - 25% )
+                    double deductionPercentage = 25;
+                    double deductedAmount = (deductionPercentage / 100) * seat.getPriceOfTicket();
                     updateAccountBalance.setAccountNumber(accountNumber);
-                    updateAccountBalance.setAccountBalance(seat.getPriceOfTicket());
+
+                    // TODO; Need to update the mainBalance + ( deductedAmount )
+                    updateAccountBalance.setAccountBalance(deductedAmount);
                     restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
+                    notificationsUtility.sendRefundWithPercentageDeductionNotification(accountNumber , seat.getPriceOfTicket());
 
                     trainBoolCancellationResponse.setMessage("Booking successfully canceled. You will get notification on your mobile number soon");
                     trainBoolCancellationResponse.setReFund(String.valueOf(seat.getPriceOfTicket()));
+
+                    notificationsUtility.sendBookingCancellationNotification(passengersInfo.getTrainName() , passengersInfo.getTrainNumber() , passengersInfo.getTicketNumber() , passengersInfo.getFirstName());
 
                     trainBookedRepositories.delete(seat);
                     trainPassengerInfoRepositories.delete(passengersInfo);
