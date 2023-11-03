@@ -14,12 +14,9 @@ public class NotificationsUtility {
 
     public void sendConfirmationBookingMessage(String trainId, String trainName, String trainNumber, String passengerName) {
 
-        String messageBody = "Dear " + passengerName + ",\n\n"
-                + "We are pleased to inform you that your booking for train " + trainName + " (Train Number: " + trainNumber + ") has been confirmed. Your seat on this train (Train ID: " + trainId + ") is now secured.\n\n"
-                + "We look forward to welcoming you on board. If you have any further questions or require assistance, please don't hesitate to contact our customer support.\n\n"
-                + "Thank you for choosing us for your travel needs.\n\n"
-                + "Sincerely,\n"
-                + "Your Travel Booking Team";
+        String messageBody = "Dear " + passengerName + ",\n"
+                + "Your booking for " + trainName + " (Train #" + trainNumber + ") is confirmed. Your seat (ID: " + trainId + ") is reserved. We look forward to welcoming you on board. For assistance, contact us. Thank you for choosing us!\n"
+                + "Sincerely, Your Travel Team";
 
         notificationConfig.sendSMS(messageBody);
     }
