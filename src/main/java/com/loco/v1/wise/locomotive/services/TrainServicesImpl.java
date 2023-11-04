@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -91,6 +92,10 @@ public class TrainServicesImpl implements TrainServices {
 
                 long SeatCount = trainPassengerInfoRepositories.countByTrainId(trainPassengerInfoRequest.getTrainId());
 
+                // TODO:
+                //  Edit -> User only enter the preference Like lower , upper ,
+                //  middle, and algo give random seat as per the weight of every bogies
+
                 int maxSeats = 250;
                 int availableSeats = maxSeats - (int) SeatCount;
 
@@ -103,6 +108,7 @@ public class TrainServicesImpl implements TrainServices {
                 }
 
                 if (availableSeats > 0) {
+
                     if (trainPassengersInfo.isPresent()) {
                         return createProfile(trainPassengerInfoRequest, gettingTrainInfo, train.get());
                     }
@@ -115,26 +121,12 @@ public class TrainServicesImpl implements TrainServices {
         throw new ValidationFailedException("Something went wrong...");
     }
 
-    public void updateAccountBalanceIfNeeded(TrainPassengerInfoRequest trainPassengerInfoRequest) {
-        String accountServiceUrl = URL_FOR_ACCOUNT_SERVICE + trainPassengerInfoRequest.getAccountNumber() + "/" + trainPassengerInfoRequest.getIfscCode() +
-                "/" + trainPassengerInfoRequest.getPassword();
-        ResponseEntity<AccountInformation> response = restTemplate.getForEntity(accountServiceUrl, AccountInformation.class);
-        AccountInformation accountInformation = response.getBody();
 
-        if (accountInformation != null) {
-            UpdateAccountBalance updateAccountBalance = getUpdateAccountBalance(trainPassengerInfoRequest, accountInformation);
-            restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
-            notificationsUtility.sendMoneyCreditedNotification(trainPassengerInfoRequest.getAccountNumber(),
-                    trainPassengerInfoRequest.getFirstName(),
-                    trainPassengerInfoRequest.getTicketPrice());
-        }
-    }
     private static UpdateAccountBalance getUpdateAccountBalance(TrainPassengerInfoRequest trainPassengerInfoRequest, AccountInformation accountInformation) {
         double priceOfTicket = trainPassengerInfoRequest.getTicketPrice();
         if (priceOfTicket > accountInformation.getAccountBalance()) {
             throw new AccountBalanceException("Ticket is not booked because you have insufficient balance in your account.");
         }
-
         double mainAccountBalance = accountInformation.getAccountBalance();
         double main_balanceUpdate = mainAccountBalance - priceOfTicket;
 
@@ -168,13 +160,25 @@ public class TrainServicesImpl implements TrainServices {
         return trainPassengersCreate;
     }
 
+    public void updateAccountBalanceIfNeeded(TrainPassengerInfoRequest trainPassengerInfoRequest) {
+        String accountServiceUrl = URL_FOR_ACCOUNT_SERVICE + trainPassengerInfoRequest.getAccountNumber() + "/" + trainPassengerInfoRequest.getIfscCode() +
+                "/" + trainPassengerInfoRequest.getPassword();
+        ResponseEntity<AccountInformation> response = restTemplate.getForEntity(accountServiceUrl, AccountInformation.class);
+        AccountInformation accountInformation = response.getBody();
+
+        if (accountInformation != null) {
+            UpdateAccountBalance updateAccountBalance = getUpdateAccountBalance(trainPassengerInfoRequest, accountInformation);
+            restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
+            notificationsUtility.sendMoneyCreditedNotification(trainPassengerInfoRequest.getAccountNumber(), trainPassengerInfoRequest.getFirstName(),
+                    trainPassengerInfoRequest.getTicketPrice());
+        }
+    }
 
     @Override
     @Transactional
     public TrainBoolCancellationResponse cancelBookingTrain(String seatNumber, String trainNumber, String accountNumber) {
 
-        // TODO:
-        //  Remove the accountNumber from the above parameter
+        // TODO: Remove the accountNumber from the above parameter
         //  and get from the actual account information and accountNumber from there
 
         TrainBoolCancellationResponse trainBoolCancellationResponse = new TrainBoolCancellationResponse();
@@ -183,27 +187,22 @@ public class TrainServicesImpl implements TrainServices {
         if (optionalPassengersInfo.isPresent()) {
             TrainPassengersInfo passengersInfo = optionalPassengersInfo.get();
             Optional<BookedSeat> optionalBookedSeat = trainBookedRepositories.findById(seatNumber);
-
             if (optionalBookedSeat.isPresent()) {
                 BookedSeat seat = optionalBookedSeat.get();
 
                 try {
                     UpdateAccountBalance updateAccountBalance = new UpdateAccountBalance();
-
                     double deductionPercentage = 25;
                     double deductedAmount = (deductionPercentage / 100) * seat.getPriceOfTicket();
-                    updateAccountBalance.setAccountNumber(accountNumber);
 
                     // TODO; Need to update the mainBalance + ( deductedAmount )
                     updateAccountBalance.setAccountBalance(deductedAmount);
                     restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
-                    notificationsUtility.sendRefundWithPercentageDeductionNotification(accountNumber , seat.getPriceOfTicket());
-
+                    notificationsUtility.sendRefundWithPercentageDeductionNotification(accountNumber, seat.getPriceOfTicket());
                     trainBoolCancellationResponse.setMessage("Booking successfully canceled. You will get notification on your mobile number soon");
                     trainBoolCancellationResponse.setReFund(String.valueOf(seat.getPriceOfTicket()));
-
-                    notificationsUtility.sendBookingCancellationNotification(passengersInfo.getTrainName() , passengersInfo.getTrainNumber() , passengersInfo.getTicketNumber() , passengersInfo.getFirstName());
-
+                    notificationsUtility.sendBookingCancellationNotification(passengersInfo.getTrainName(), passengersInfo.getTrainNumber(),
+                            passengersInfo.getTicketNumber(), passengersInfo.getFirstName());
                     trainBookedRepositories.delete(seat);
                     trainPassengerInfoRepositories.delete(passengersInfo);
 
@@ -211,7 +210,6 @@ public class TrainServicesImpl implements TrainServices {
                     trainBoolCancellationResponse.setMessage("Failed to update account balance.");
                 }
             } else {
-
                 trainBoolCancellationResponse.setMessage("Seat is not booked.");
             }
         } else {
@@ -219,6 +217,11 @@ public class TrainServicesImpl implements TrainServices {
         }
 
         return trainBoolCancellationResponse;
+    }
+
+    @Override
+    public List<Train> searchTrains(String source, String destination, LocalDate travelDate) {
+        return null;
     }
 
     @Override
@@ -372,9 +375,7 @@ public class TrainServicesImpl implements TrainServices {
                 Optional<BookedSeat> optionalBookedSeat = trainBookedRepositories.findById(passengerInfo.getSeatNumber());
                 int countPassenger = trainBookedRepositories.countBySeatNumber(passengerInfo.getSeatNumber());
 
-                if (countPassenger > 0) {
-                    countPassenger++;
-                } else {
+                if (countPassenger == 0) {
                     throw new TrainServiceException("There are no passengers");
                 }
 
@@ -407,7 +408,6 @@ public class TrainServicesImpl implements TrainServices {
         }
         throw new PnrNotFoundException("Invalid PNR Number");
     }
-
 
 }
 

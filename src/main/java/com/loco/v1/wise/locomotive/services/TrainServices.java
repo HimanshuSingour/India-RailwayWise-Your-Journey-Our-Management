@@ -11,6 +11,7 @@ import com.loco.v1.wise.locomotive.entity.BookedSeat;
 import com.loco.v1.wise.locomotive.entity.Trains.Train;
 import com.loco.v1.wise.locomotive.entity.Trains.TrainPassengersInfo;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface TrainServices {
@@ -35,11 +36,24 @@ public interface TrainServices {
 
     TrainBoolCancellationResponse cancelBookingTrain(String seatNumber , String trainNumber, String accountNumber);
 
+    List<Train> searchTrains(String source, String destination, LocalDate travelDate);
+
     PnrStatusResponse getPassengerInfoByPNRNumber(String PNRNum);
 
     // TODO; Need to implements
-//    TrainResponse getAvailableTrains(TrainRequest trainRequest);
-//    TrainResponse getTrainStatus(TrainRequest trainRequest);
 
+
+    //SeatAvailabilityResponse checkSeatAvailability(String trainNumber, LocalDate travelDate, String coachClass, int numberOfSeats);
+    //TrainRouteInfoResponse getTrainRouteInfo(String trainNumber);
+    //List<TrainStation> getAllTrainStations();
+    //TrainStation getTrainStationDetails(String stationCode);
+    //SpecialServiceReservationResponse reserveSpecialServices(String trainNumber, List<SpecialServiceRequest> specialServices);
+    //TrainFareResponse calculateTrainFare(String trainNumber, String source, String destination, String coachClass);
+    //DiscountPromotionResponse applyDiscountsAndPromotions(String trainNumber, String passengerType, String promoCode);
+    //GroupBookingResponse reserveGroupBookings(String trainNumber, List<GroupBookingRequest> groupBookings);
+    //TrainSafetyInfoResponse getTrainSafetyInfo(String trainNumber);
+    //TrainFeedbackResponse handleTrainComplaintsAndFeedback(String trainNumber, List<TrainComplaint> complaints);
+    //TrainWifiEntertainmentResponse getTrainWifiAndEntertainmentInfo(String trainNumber);
+    //TrainLostAndFoundResponse getLostAnd FoundInfo(String trainNumber);
 
 }

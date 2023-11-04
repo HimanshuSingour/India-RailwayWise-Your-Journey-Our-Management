@@ -30,5 +30,4 @@ public class PnrStatusResponse {
     private double fare;
     private boolean confirmed;
 
-
 }
