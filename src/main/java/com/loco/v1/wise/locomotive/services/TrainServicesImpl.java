@@ -58,12 +58,7 @@ public class TrainServicesImpl implements TrainServices {
 
     public boolean validationChecks(TrainPassengerInfoRequest trainPassengerInfoRequest) {
 
-        String[] checkFields =
-                {trainPassengerInfoRequest.getPassengerId(), trainPassengerInfoRequest.getTrainId(), trainPassengerInfoRequest.getFirstName(), trainPassengerInfoRequest.getLastName(), trainPassengerInfoRequest.getAge() + "",
-                        trainPassengerInfoRequest.getGender(), trainPassengerInfoRequest.getAddress(),
-                        trainPassengerInfoRequest.getPhone(), trainPassengerInfoRequest.getEmail(), trainPassengerInfoRequest.getNationality(),
-                        trainPassengerInfoRequest.getTrainName(), trainPassengerInfoRequest.getSeatNumber(),
-                        trainPassengerInfoRequest.getAccountNumber(), trainPassengerInfoRequest.getIfscCode(), trainPassengerInfoRequest.getPassword()};
+        String[] checkFields = {trainPassengerInfoRequest.getPassengerId(), trainPassengerInfoRequest.getTrainId(), trainPassengerInfoRequest.getFirstName(), trainPassengerInfoRequest.getLastName(), trainPassengerInfoRequest.getAge() + "", trainPassengerInfoRequest.getGender(), trainPassengerInfoRequest.getAddress(), trainPassengerInfoRequest.getPhone(), trainPassengerInfoRequest.getEmail(), trainPassengerInfoRequest.getNationality(), trainPassengerInfoRequest.getTrainName(), trainPassengerInfoRequest.getSeatNumber(), trainPassengerInfoRequest.getAccountNumber(), trainPassengerInfoRequest.getIfscCode(), trainPassengerInfoRequest.getPassword()};
 
         for (int i = 0; i < checkFields.length; i++) {
             if (checkFields[i] == null || checkFields[i].isEmpty()) {
@@ -138,16 +133,10 @@ public class TrainServicesImpl implements TrainServices {
 
     public TrainPassengersInfo createProfile(TrainPassengerInfoRequest trainPassengerInfoRequest, Train gettingTrainInfo, Train train) {
 
-        TrainPassengersInfo trainPassengersCreate = TrainPassengersInfo.builder().passengerId(trainPassengerInfoRequest.getPassengerId()).
-                trainId(gettingTrainInfo.getTrainId()).trainName(trainPassengerInfoRequest.getTrainName()).pnrNumber(MyPayloads.forPnrNumberGenerator()).ticketNumber(MyPayloads.generateTicketNumber()).seatNumber(trainPassengerInfoRequest.getSeatNumber()).
-                trainNumber(gettingTrainInfo.getTrainNumber()).firstName(trainPassengerInfoRequest.getFirstName()).
-                lastName(trainPassengerInfoRequest.getLastName()).age(trainPassengerInfoRequest.getAge()).address(trainPassengerInfoRequest.getAddress()).
-                email(trainPassengerInfoRequest.getEmail()).phone(trainPassengerInfoRequest.getPhone()).gender(trainPassengerInfoRequest.getGender()).trainPassengerInfo(train).passportNumber(trainPassengerInfoRequest.getPassportNumber()).nationality(trainPassengerInfoRequest.getNationality())
-                .messageStatus(TICKET_BOOKED_SUCCESSFULLY).build();
+        TrainPassengersInfo trainPassengersCreate = TrainPassengersInfo.builder().passengerId(trainPassengerInfoRequest.getPassengerId()).trainId(gettingTrainInfo.getTrainId()).trainName(trainPassengerInfoRequest.getTrainName()).pnrNumber(MyPayloads.forPnrNumberGenerator()).ticketNumber(MyPayloads.generateTicketNumber()).seatNumber(trainPassengerInfoRequest.getSeatNumber()).trainNumber(gettingTrainInfo.getTrainNumber()).firstName(trainPassengerInfoRequest.getFirstName()).lastName(trainPassengerInfoRequest.getLastName()).age(trainPassengerInfoRequest.getAge()).address(trainPassengerInfoRequest.getAddress()).email(trainPassengerInfoRequest.getEmail()).phone(trainPassengerInfoRequest.getPhone()).gender(trainPassengerInfoRequest.getGender()).trainPassengerInfo(train).passportNumber(trainPassengerInfoRequest.getPassportNumber()).nationality(trainPassengerInfoRequest.getNationality()).messageStatus(TICKET_BOOKED_SUCCESSFULLY).build();
         trainPassengerInfoRepositories.save(trainPassengersCreate);
 
-        notificationsUtility.sendConfirmationBookingMessage(trainPassengerInfoRequest.getTrainId(), trainPassengerInfoRequest.getTrainName(),
-                trainPassengerInfoRequest.getTrainNumber(), trainPassengerInfoRequest.getFirstName());
+        notificationsUtility.sendConfirmationBookingMessage(trainPassengerInfoRequest.getTrainId(), trainPassengerInfoRequest.getTrainName(), trainPassengerInfoRequest.getTrainNumber(), trainPassengerInfoRequest.getFirstName());
 
         BookedSeat seat = new BookedSeat();
         seat.setSeatNumber(trainPassengerInfoRequest.getSeatNumber());
@@ -161,16 +150,14 @@ public class TrainServicesImpl implements TrainServices {
     }
 
     public void updateAccountBalanceIfNeeded(TrainPassengerInfoRequest trainPassengerInfoRequest) {
-        String accountServiceUrl = URL_FOR_ACCOUNT_SERVICE + trainPassengerInfoRequest.getAccountNumber() + "/" + trainPassengerInfoRequest.getIfscCode() +
-                "/" + trainPassengerInfoRequest.getPassword();
+        String accountServiceUrl = URL_FOR_ACCOUNT_SERVICE + trainPassengerInfoRequest.getAccountNumber() + "/" + trainPassengerInfoRequest.getIfscCode() + "/" + trainPassengerInfoRequest.getPassword();
         ResponseEntity<AccountInformation> response = restTemplate.getForEntity(accountServiceUrl, AccountInformation.class);
         AccountInformation accountInformation = response.getBody();
 
         if (accountInformation != null) {
             UpdateAccountBalance updateAccountBalance = getUpdateAccountBalance(trainPassengerInfoRequest, accountInformation);
             restTemplate.put(URL_FOR_ACCOUNT_UPDATE_SERVICE, updateAccountBalance);
-            notificationsUtility.sendMoneyCreditedNotification(trainPassengerInfoRequest.getAccountNumber(), trainPassengerInfoRequest.getFirstName(),
-                    trainPassengerInfoRequest.getTicketPrice());
+            notificationsUtility.sendMoneyCreditedNotification(trainPassengerInfoRequest.getAccountNumber(), trainPassengerInfoRequest.getFirstName(), trainPassengerInfoRequest.getTicketPrice());
         }
     }
 
@@ -201,8 +188,7 @@ public class TrainServicesImpl implements TrainServices {
                     notificationsUtility.sendRefundWithPercentageDeductionNotification(accountNumber, seat.getPriceOfTicket());
                     trainBoolCancellationResponse.setMessage("Booking successfully canceled. You will get notification on your mobile number soon");
                     trainBoolCancellationResponse.setReFund(String.valueOf(seat.getPriceOfTicket()));
-                    notificationsUtility.sendBookingCancellationNotification(passengersInfo.getTrainName(), passengersInfo.getTrainNumber(),
-                            passengersInfo.getTicketNumber(), passengersInfo.getFirstName());
+                    notificationsUtility.sendBookingCancellationNotification(passengersInfo.getTrainName(), passengersInfo.getTrainNumber(), passengersInfo.getTicketNumber(), passengersInfo.getFirstName());
                     trainBookedRepositories.delete(seat);
                     trainPassengerInfoRepositories.delete(passengersInfo);
 
@@ -219,10 +205,6 @@ public class TrainServicesImpl implements TrainServices {
         return trainBoolCancellationResponse;
     }
 
-    @Override
-    public List<Train> searchTrains(String source, String destination, LocalDate travelDate) {
-        return null;
-    }
 
     @Override
     public TrainResponse addTrain(Train train) {
@@ -239,11 +221,7 @@ public class TrainServicesImpl implements TrainServices {
             throw new TrainServiceException("Invalid Input: Train name contains numbers.");
 
         }
-        Train newTrain = Train.builder().trainId(autoTrainId).trainNumber(MyPayloads.forTrainNumber()).trainInit(MyPayloads.forTrainInIt()).trainName(train.getTrainName())
-                .sourceStation(train.getSourceStation()).destinationStation(train.getDestinationStation())
-                .ticketPrice(train.getTicketPrice()).departureTime(train.getDepartureTime()).arrivalTime(train.getArrivalTime()).maxSpeed(train.getMaxSpeed())
-                .trainStatus(train.getTrainStatus()).averageSpeed(train.getAverageSpeed()).trainAddTime(localDateTime)
-                .build();
+        Train newTrain = Train.builder().trainId(autoTrainId).trainNumber(MyPayloads.forTrainNumber()).trainInit(MyPayloads.forTrainInIt()).trainName(train.getTrainName()).sourceStation(train.getSourceStation()).destinationStation(train.getDestinationStation()).ticketPrice(train.getTicketPrice()).departureTime(train.getDepartureTime()).arrivalTime(train.getArrivalTime()).maxSpeed(train.getMaxSpeed()).trainStatus(train.getTrainStatus()).averageSpeed(train.getAverageSpeed()).trainAddTime(localDateTime).build();
 
         TrainResponse trainResponse = new TrainResponse();
         trainResponse.setTrainName(newTrain.getTrainName());
@@ -382,24 +360,7 @@ public class TrainServicesImpl implements TrainServices {
                 if (optionalBookedSeat.isPresent()) {
                     BookedSeat seat = optionalBookedSeat.get();
 
-                    return PnrStatusResponse.builder()
-                            .departureStation(trainInfo.getDestinationStation())
-                            .arrivalStation(trainInfo.getSourceStation())
-                            .pnrNumber(PNRNum)
-                            .seatNumber(passengerInfo.getSeatNumber())
-                            .passengerName(passengerInfo.getFirstName() + " " + passengerInfo.getLastName())
-                            .pnrStatus("ACTIVE T891")
-                            .trainNumber(passengerInfo.getTrainNumber())
-                            .trainName(passengerInfo.getTrainName())
-                            .ticketNumber(passengerInfo.getTicketNumber())
-                            .message("PNR status is complete")
-                            .currentTime(LocalDateTime.now())
-                            .departureDate(LocalDateTime.now())
-                            .arrivalDate(LocalDateTime.now())
-                            .totalPassengers(countPassenger)
-                            .fare(seat.getPriceOfTicket())
-                            .confirmed(true)
-                            .build();
+                    return PnrStatusResponse.builder().departureStation(trainInfo.getDestinationStation()).arrivalStation(trainInfo.getSourceStation()).pnrNumber(PNRNum).seatNumber(passengerInfo.getSeatNumber()).passengerName(passengerInfo.getFirstName() + " " + passengerInfo.getLastName()).pnrStatus("ACTIVE T891").trainNumber(passengerInfo.getTrainNumber()).trainName(passengerInfo.getTrainName()).ticketNumber(passengerInfo.getTicketNumber()).message("PNR status is complete").currentTime(LocalDateTime.now()).departureDate(LocalDateTime.now()).arrivalDate(LocalDateTime.now()).totalPassengers(countPassenger).fare(seat.getPriceOfTicket()).confirmed(true).build();
 
                 }
                 throw new PnrNotFoundException("Seat information is not available");

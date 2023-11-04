@@ -36,12 +36,9 @@ public interface TrainServices {
 
     TrainBoolCancellationResponse cancelBookingTrain(String seatNumber , String trainNumber, String accountNumber);
 
-    List<Train> searchTrains(String source, String destination, LocalDate travelDate);
-
     PnrStatusResponse getPassengerInfoByPNRNumber(String PNRNum);
 
     // TODO; Need to implements
-
 
     //SeatAvailabilityResponse checkSeatAvailability(String trainNumber, LocalDate travelDate, String coachClass, int numberOfSeats);
     //TrainRouteInfoResponse getTrainRouteInfo(String trainNumber);
