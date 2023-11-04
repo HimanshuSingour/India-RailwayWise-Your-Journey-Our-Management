@@ -58,7 +58,10 @@ public class TrainServicesImpl implements TrainServices {
 
     public boolean validationChecks(TrainPassengerInfoRequest trainPassengerInfoRequest) {
 
-        String[] checkFields = {trainPassengerInfoRequest.getPassengerId(), trainPassengerInfoRequest.getTrainId(), trainPassengerInfoRequest.getFirstName(), trainPassengerInfoRequest.getLastName(), trainPassengerInfoRequest.getAge() + "", trainPassengerInfoRequest.getGender(), trainPassengerInfoRequest.getAddress(), trainPassengerInfoRequest.getPhone(), trainPassengerInfoRequest.getEmail(), trainPassengerInfoRequest.getNationality(), trainPassengerInfoRequest.getTrainName(), trainPassengerInfoRequest.getSeatNumber(), trainPassengerInfoRequest.getAccountNumber(), trainPassengerInfoRequest.getIfscCode(), trainPassengerInfoRequest.getPassword()};
+        String[] checkFields = {trainPassengerInfoRequest.getPassengerId(), trainPassengerInfoRequest.getTrainId(), trainPassengerInfoRequest.getFirstName(),
+                trainPassengerInfoRequest.getLastName(), trainPassengerInfoRequest.getAge() + "", trainPassengerInfoRequest.getGender(), trainPassengerInfoRequest.getAddress(),
+                trainPassengerInfoRequest.getPhone(), trainPassengerInfoRequest.getEmail(), trainPassengerInfoRequest.getNationality(), trainPassengerInfoRequest.getTrainName(),
+                trainPassengerInfoRequest.getSeatNumber(), trainPassengerInfoRequest.getAccountNumber(), trainPassengerInfoRequest.getIfscCode(), trainPassengerInfoRequest.getPassword()};
 
         for (int i = 0; i < checkFields.length; i++) {
             if (checkFields[i] == null || checkFields[i].isEmpty()) {
