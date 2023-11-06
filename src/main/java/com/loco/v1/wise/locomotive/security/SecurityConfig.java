@@ -12,12 +12,17 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
 
         httpSecurity
+                .csrf()
+                .disable()
                 .authorizeHttpRequests()
+                .requestMatchers("/train/v7/server/add-train")
+                .permitAll()
+                .requestMatchers("/train/v7/server/add-bogies")
+                .permitAll()
                 .anyRequest()
                 .authenticated()
                 .and()
                 .oauth2Login();
-
 
         return httpSecurity.build();
     }
