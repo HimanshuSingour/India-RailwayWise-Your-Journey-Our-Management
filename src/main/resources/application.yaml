@@ -19,6 +19,10 @@ spring:
             clientId: 524334882640-smkp5fo233eps18o54g9842u3vtdqi0h.apps.googleusercontent.com
             clientSecret: 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
 
+
+
+
+
   main:
     web-application-type=none:
     allow-circular-references: true
