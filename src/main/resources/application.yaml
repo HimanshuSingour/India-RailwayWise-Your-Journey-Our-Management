@@ -11,6 +11,14 @@ spring:
     password: Ryzen@12
     driver-class-name : com.mysql.cj.jdbc.Driver
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            clientId: 524334882640-smkp5fo233eps18o54g9842u3vtdqi0h.apps.googleusercontent.com
+            clientSecret: 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
+
   main:
     web-application-type=none:
     allow-circular-references: true
@@ -22,6 +30,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
 
 
 
