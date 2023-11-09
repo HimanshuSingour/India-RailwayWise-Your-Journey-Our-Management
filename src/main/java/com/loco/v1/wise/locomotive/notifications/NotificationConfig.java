@@ -26,5 +26,6 @@ public class NotificationConfig {
         } catch (Exception e) {
             log.error("An error occurred while sending SMS: " + e.getMessage(), e);
         }
+        
     }
 }

@@ -103,7 +103,7 @@ public class TrainServicesImpl implements TrainServices {
                         throw new SeatAlreadyBookedException("Seat " + trainPassengersInfo.get().getSeatNumber() + " has already been booked by you. You will be notified on your mobile number soon.");
                     } else {
                         throw new SeatAlreadyBookedException("Seat " + trainPassengerInfoRequest.getSeatNumber() + " has already been booked by another passenger. Please choose a different seat.");
-                    }
+              }
                 }
 
                 if (availableSeats > 0) {
